@@ -19,7 +19,7 @@ Dự án này được xây dựng nhằm giải quyết vấn đề "một giá
 
 ---
 
-📊 Mô hình AI sử dụng
+### 📊 Mô hình AI sử dụng
 Hệ thống sử dụng các mô hình học máy cơ bản nhưng hiệu quả cao cho giáo dục:
 
 - K-Means: Phân nhóm học viên thành các nhóm: Cần hỗ trợ, Khá, Giỏi.
@@ -40,7 +40,7 @@ Hệ thống sử dụng các mô hình học máy cơ bản nhưng hiệu quả
 ├── requirements.txt    # Danh sách thư viện cần cài đặt
 └── README.md           # Tài liệu hướng dẫn dự án
 ```
-🛠️ Công nghệ sử dụng
+## 🛠️ Công nghệ sử dụng
 Ngôn ngữ: Python 3.x
 
 AI/ML: Scikit-learn, Pandas, NumPy
@@ -51,7 +51,7 @@ Database: MySQL / SQLite
 
 Tools: VS Code, Git
 
-🚀 Hướng dẫn cài đặt
+## 🚀 Hướng dẫn cài đặt
 ### 1. Clone repository:
 ```bash
 git clone [https://github.com/Trihoan/Adaptive-Learning-AI.git](https://github.com/Trihoan/Adaptive-Learning-AI.git)
