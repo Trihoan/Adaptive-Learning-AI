@@ -54,7 +54,8 @@ Tools: VS Code, Git
 ## 🚀 Hướng dẫn cài đặt
 ### 1. Clone repository:
 ```bash
-git clone [https://github.com/Trihoan/Adaptive-Learning-AI.git](https://github.com/Trihoan/Adaptive-Learning-AI.git)
+git clone https://github.com/Trihoan/Adaptive-Learning-AI.git
+(https://github.com/Trihoan/Adaptive-Learning-AI.git)
 cd Adaptive-Learning-AI
 ```
 ### 2. Khởi tạo môi trường ảo (Virtual Environment)
