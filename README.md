@@ -7,8 +7,7 @@
 ## 📝 Giới thiệu dự án
 **Adaptive Learning AI System** là một nền tảng học tập trực tuyến thông minh, có khả năng cá nhân hóa lộ trình học tập cho từng sinh viên dựa trên năng lực và hành vi thực tế. Hệ thống sử dụng các thuật toán Học máy (Machine Learning) để phân loại người học và đề xuất tài liệu phù hợp nhất.
 
-Dự án này được xây dựng nhằm giải quyết vấn đề "một giáo án cho tất cả", giúp tối ưu hóa thời gian và hiệu quả tiếp thu kiến thức.
-
+Dự án này được xây dựng nhằm giải quyết vấn đề "một giáo án cho tất cả", giúp tối ưu hóa thời gian và hiệu quả tiếp thu kiến thức. Backend được phát triển bằng FastAPI, mang lại hiệu suất cực cao và tài liệu API tự động.
 ---
 
 ## ✨ Các tính năng chính
@@ -16,7 +15,7 @@ Dự án này được xây dựng nhằm giải quyết vấn đề "một giá
 - **Dự đoán kết quả học tập:** Áp dụng **Decision Tree** hoặc **KNN** để dự báo khả năng hoàn thành khóa học của sinh viên.
 - **Lộ trình cá nhân hóa:** Tự động điều chỉnh độ khó của bài tập và gợi ý tài liệu bổ trợ.
 - **Dashboard trực quan:** Theo dõi tiến độ học tập thông qua biểu đồ sinh động.
-
+- **RESTful API mạnh mẽ: Cung cấp các endpoint tốc độ cao để giao tiếp với Frontend.
 ---
 
 ### 📊 Mô hình AI sử dụng
@@ -33,29 +32,33 @@ Hệ thống sử dụng các mô hình học máy cơ bản nhưng hiệu quả
 ├── models/             # Lưu trữ các model AI đã được huấn luyện (.pkl)
 ├── notebooks/          # File Jupyter Notebook để phân tích dữ liệu (EDA)
 ├── src/                # Mã nguồn chính của ứng dụng
-│   ├── app.py          # File chạy chính (Backend Flask/FastAPI)
-│   ├── ai_engine.py    # Logic xử lý thuật toán AI
-│   └── templates/      # Giao diện người dùng (HTML/CSS)
-├── .gitignore          # Các file không đẩy lên GitHub (venv, .pyc...)
+│   ├── config/         # Cấu hình hệ thống (Database, App settings)
+│   ├── controllers/    # API Routers (Xử lý request/response)
+│   ├── models/         # Database models (SQLAlchemy)
+│   ├── services/       # Logic xử lý AI và nghiệp vụ
+│   └── server.py       # Điểm khởi chạy ứng dụng FastAPI
+├── .env                # File chứa biến môi trường (Bảo mật thông tin)
+├── .gitignore          # Các file không đẩy lên GitHub (venv, .env...)
 ├── requirements.txt    # Danh sách thư viện cần cài đặt
 └── README.md           # Tài liệu hướng dẫn dự án
 ```
 ## 🛠️ Công nghệ sử dụng
 Ngôn ngữ: Python 3.x
 
-AI/ML: Scikit-learn, Pandas, NumPy
+AI/Machine Learning: Scikit-learn, Pandas, NumPy
 
-Web Framework: Flask / FastAPI (Tùy chọn)
+Web Framework: Flask / FastAPI , Unvicorn (ASGI server)
 
-Database: MySQL / SQLite
+Database & ORM: MySQL , SQLAlchemy
 
 Tools: VS Code, Git
+
+Môi Trường: Virtualenv, Pydantic (Validate dữ liệu)
 
 ## 🚀 Hướng dẫn cài đặt
 ### 1. Clone repository:
 ```bash
 git clone https://github.com/Trihoan/Adaptive-Learning-AI.git
-(https://github.com/Trihoan/Adaptive-Learning-AI.git)
 cd Adaptive-Learning-AI
 ```
 ### 2. Khởi tạo môi trường ảo (Virtual Environment)
@@ -75,9 +78,20 @@ Dự án sử dụng các thư viện AI và Web FrameWork:
 ```text
 pip install -r requirements.txt
 ```
-### 4. Chạy ứng dụng 
-Sau khi cài đặt xong, bạn có thể khởi động server local:
+### 4. Thiết lập biến môi trường (Environment Variables)
 ```text
-python src/app.py
+# Ví dụ nội dung file .env
+DATABASE_URL=mysql+pymysql://username:password@localhost:3306/alas_db
+(Lưu ý: Thay thế username, password và tên database bằng thông tin thực tế của bạn).
 ```
-Sau đó truy cập địa chỉ http://127.0.0.1:5000 trên trình duyệt.
+### 5.Khởi động Server FastAPI
+Chạy lệnh sau để khởi động server ở chế độ phát triển (tự động reload khi có thay đổi code):
+```text
+uvicorn src.server:app --reload
+```
+### 6.Trải nghiệm API (Swagger UI)
+FastAPI tự động tạo tài liệu API tương tác cực kỳ trực quan. Mở trình duyệt và truy cập:
+
+Tài liệu Swagger UI: http://127.0.0.1:8000/docs
+
+Tài liệu ReDoc: http://127.0.0.1:8000/redoc
