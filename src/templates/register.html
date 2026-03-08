@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - ALAS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- LEFT SIDE -->
+        <div class="left">
+            <img src="{{url_for('static', filename='logoPTIT.png')}}" alt="logoPTIT">
+            <h2>Welcome to PTIT</h2>
+            <p>Create Account</p>
+            <form action="/register" method="POST">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+                <input type="text" name="fullname" placeholder="Full Name">
+                <input type="text" name="student_id" placeholder="Student ID">
+                <button type="submit">Sign Up</button>
+            </form>
+            <p class="login-link">
+                Already have an account?
+                <a href="/">Login</a>
+            </p>
+        </div>
+        <!-- RIGHT SIDE -->
+        <div class="right">
+            <img src="{{url_for('static', filename='login.png')}}" alt="education">
+        </div>
+    </div>
+</body>
+</html>
