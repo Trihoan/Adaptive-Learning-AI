@@ -83,3 +83,25 @@ body{
     color:#4a7bd3;
     text-decoration:none;
 }
+/* --- PHẦN THÔNG BÁO MẬT KHẨU --- */
+
+/* Mặc định thông báo sẽ ẩn */
+#error-msg {
+    display: none; /* Ẩn đi khi không có lỗi */
+    font-size: 13px;
+    margin-top: 5px; /* Khoảng cách nhỏ với ô nhập */
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+/* Class này sẽ được JavaScript thêm vào khi có lỗi */
+.password-error {
+    display: block !important; /* Hiện lên */
+    color: #e63946; /* Màu đỏ trùng với màu tiêu đề H2 */
+}
+
+/* Class này sẽ được JavaScript thêm vào khi khớp */
+.password-success {
+    display: block !important; /* Hiện lên */
+    color: #2ecc71; /* Màu xanh lá cây thân thiện */
+}

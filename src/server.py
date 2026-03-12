@@ -9,9 +9,9 @@ app = FastAPI(title="Adaptive Learning AI API")
 # Cấu hình để FastAPI biết tìm file HTML ở đâu
 # Giả sử thư mục templates của bạn nằm ở thư mục gốc của project
 templates = Jinja2Templates(directory="templates")
-
+    
 # Nếu bạn có thư mục static cho CSS/JS (tùy chọn)
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def login_page(request: Request):

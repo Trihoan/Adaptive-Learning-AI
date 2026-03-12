@@ -2,33 +2,79 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - ALAS</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
 </head>
 <body>
     <div class="container">
-        <!-- LEFT SIDE -->
         <div class="left">
-            <img src="{{url_for('static', filename='img/logoPTIT.png')}}" alt="logoPTIT">
+            <img src="{{ url_for('static', path='img/logoPTIT.png') }}" alt="logoPTIT">
             <h2>Welcome to PTIT</h2>
             <p>Create Account</p>
-            <form action="/register" method="POST">
+            
+            <form action="/register" method="POST" id="registerForm">
                 <input type="text" name="username" placeholder="Username" required>
-                <input type="password" name="password" placeholder="Password" required>
-                <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+                
+                <input type="password" name="password" id="password" placeholder="Password" required>
+                
+                <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm Password" required>
+                <span id="error-msg"></span>
+                <small id="error-msg" style="display: block; margin-bottom: 10px; min-height: 15px;"></small>
+
                 <input type="text" name="fullname" placeholder="Full Name">
                 <input type="text" name="student_id" placeholder="Student ID">
-                <button type="submit">Sign Up</button>
+                
+                <button type="submit" id="submitBtn">Sign Up</button>
             </form>
+
             <p class="login-link">
                 Already have an account?
                 <a href="/">Login</a>
             </p>
         </div>
-        <!-- RIGHT SIDE -->
+
         <div class="right">
-            <img src="{{url_for('static', filename='img/login.png')}}" alt="education">
+            <img src="{{ url_for('static', path='img/login.png') }}" alt="education">
         </div>
     </div>
+
+    <script>
+    const password = document.getElementById('password');
+    const confirm_password = document.getElementById('confirm_password');
+    const error_msg = document.getElementById('error-msg');
+    const submitBtn = document.getElementById('submitBtn'); // Đảm bảo nút của bạn có ID này
+
+    function checkPassword() {
+        // Chỉ kiểm tra khi cả 2 ô đều đã được gõ
+        if (password.value !== "" && confirm_password.value !== "") {
+            
+            if (password.value === confirm_password.value) {
+                // TRƯỜNG HỢP KHỚP
+                error_msg.innerHTML = "✓ Mật khẩu đã khớp";
+                error_msg.className = "password-success"; // Thêm class màu xanh
+                submitBtn.disabled = false; // Bật nút Sign Up
+                submitBtn.style.opacity = "1"; // Làm rõ nút
+            
+            } else {
+                // TRƯỜNG HỢP KHÔNG KHỚP
+                error_msg.innerHTML = "✘ Mật khẩu xác nhận không khớp";
+                error_msg.className = "password-error"; // Thêm class màu đỏ
+                submitBtn.disabled = true; // Khóa nút Sign Up
+                submitBtn.style.opacity = "0.6"; // Làm mờ nút
+            }
+        
+        } else {
+            // Nếu một trong 2 ô trống, ẩn thông báo đi
+            error_msg.className = ""; 
+            error_msg.innerHTML = "";
+            submitBtn.disabled = false;
+        }
+    }
+
+    // Lắng nghe sự kiện gõ phím ở cả 2 ô
+    password.addEventListener('input', checkPassword);
+    confirm_password.addEventListener('input', checkPassword);
+</script>
 </body>
 </html>
