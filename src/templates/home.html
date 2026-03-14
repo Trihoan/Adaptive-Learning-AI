@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>ALAS - Home</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <div class="logo">
+            Adaptive Learning AI
+        </div>
+
+        <div class="user">
+            Hoang Kien
+            <i class="fa-regular fa-circle-user avatar"></i>
+        </div>
+
+    </div>
+
+
+    <!-- SUBJECT LIST -->
+
+    <div class="subjects">
+
+        <div id="triethoc" class="subject" onclick="showChapters('triethoc')">
+            Triết học Mác - Lênin
+        </div>
+
+        <div id="xahoi" class="subject" onclick="showChapters('xahoi')">
+            Chủ nghĩa xã hội khoa học
+        </div>
+
+    </div>
+
+
+    <!-- DANH SÁCH ÔN TẬP SẼ HIỆN Ở ĐÂY -->
+
+    <div id="chapter-list" class="exercise"></div>
+
+    <script>
+
+        function showChapters(course) {
+
+            let html = ""
+
+            if (course === "triethoc") {
+
+                html = `
+<h3>Danh sách ôn tập - Triết học Mác Lênin</h3>
+
+<div class="exercise-item">
+Chương 1: Vật chất và ý thức
+</div>
+
+<div class="exercise-item">
+Chương 2: Phép biện chứng
+</div>
+
+<div class="exercise-item">
+Chương 3: Chủ nghĩa duy vật lịch sử
+</div>
+`
+            }
+
+            if (course === "xahoi") {
+
+                html = `
+<h3>Danh sách ôn tập - Chủ nghĩa xã hội khoa học</h3>
+
+<div class="exercise-item">
+Chương 1: Sự ra đời CNXH
+</div>
+
+<div class="exercise-item">
+Chương 2: Sứ mệnh giai cấp công nhân
+</div>
+`
+            }
+
+            document.getElementById("chapter-list").innerHTML = html
+
+
+            /* highlight môn học */
+
+            let subjects = document.querySelectorAll(".subject")
+
+            subjects.forEach(sub => {
+                sub.classList.remove("active")
+            })
+
+            document.getElementById(course).classList.add("active")
+
+        }
+
+
+        /* MẶC ĐỊNH TRIẾT HỌC */
+
+        window.onload = function () {
+            showChapters("triethoc")
+        }
+
+    </script>
+</body>
+
+</html>

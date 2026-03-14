@@ -1,0 +1,203 @@
+/* GLOBAL */
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f2f2f2;
+}
+
+
+
+/* HEADER */
+
+.header {
+    background: #e60023;
+    color: white;
+
+    padding: 15px 30px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar {
+    font-size: 28px;
+}
+
+
+
+/* SUBJECT LIST */
+
+.subjects {
+
+    display: flex;
+    gap: 10px;
+
+    padding: 15px;
+
+    overflow-x: auto;
+
+    background: #ffffff;
+    border-bottom: 1px solid #eee;
+}
+
+.subject {
+
+    background: white;
+    padding: 10px 18px;
+
+    border-radius: 20px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    border: 1px solid #ddd;
+
+    transition: all 0.2s ease;
+}
+
+
+/* hover */
+
+.subject:hover {
+
+    background: #f5f5f5;
+
+}
+
+
+/* môn đang chọn */
+
+.subject.active {
+
+    background: #e60023;
+
+    color: white;
+
+    border: none;
+
+}
+
+
+
+/* EXERCISE AREA */
+
+.exercise {
+
+    padding: 20px;
+
+}
+
+.exercise h3 {
+
+    margin-bottom: 10px;
+
+}
+
+
+
+/* EXERCISE CARD */
+
+.exercise-item {
+
+    background: white;
+
+    padding: 15px;
+
+    margin-top: 10px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    border-radius: 8px;
+
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+
+}
+
+
+
+/* TITLE */
+
+.exercise-title {
+
+    font-size: 14px;
+
+}
+
+
+
+/* PROGRESS */
+
+.progress {
+
+    background: #66cc66;
+
+    color: white;
+
+    padding: 5px 15px;
+
+    border-radius: 20px;
+
+    font-size: 13px;
+
+}
+
+
+
+/* CONTINUE BUTTON */
+
+.btn-continue {
+
+    background: #00bcd4;
+
+    border: none;
+
+    padding: 8px 15px;
+
+    color: white;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+
+}
+
+
+.btn-continue:hover {
+
+    background: #0097a7;
+
+}
+
+
+
+/* STATUS */
+
+.status {
+
+    background: #ccc;
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    font-size: 13px;
+
+}
