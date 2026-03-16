@@ -3,249 +3,251 @@
 
 <head>
 
-<meta charset="UTF-8">
-<title>Result</title>
+    <meta charset="UTF-8">
+    <title>Result</title>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
-<script src="https://kit.fontawesome.com/ca2ad9c616.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js"></script>
 
 </head>
 
 <body>
 
-<!-- HEADER -->
+    <!-- HEADER -->
 
-<div class="header">
+    <div class="header">
 
-    <div class="logo">
-        Adaptive Learning AI
+        <div class="logo">
+            Adaptive Learning AI
+        </div>
+
+        <div class="user">
+            Hoang Kien
+            <i class="fa-regular fa-circle-user avatar"></i>
+        </div>
+
     </div>
 
-    <div class="user">
-        Hoang Kien
-        <i class="fa-regular fa-circle-user avatar"></i>
+
+    <!-- TITLE -->
+
+    <div class="result-title">
+        <h1>Kết quả bài kiểm tra</h1>
     </div>
 
-</div>
 
+    <!-- SCORE -->
 
-<!-- TITLE -->
+    <div class="score-box">
 
-<div class="result-title">
-    <h1>Kết quả bài kiểm tra</h1>
-</div>
+        <div class="score">
+            Điểm: <span>7/10</span>
+        </div>
 
+        <div class="time">
+            Thời gian: <span>10:31</span>
+        </div>
 
-<!-- SCORE -->
-
-<div class="score-box">
-
-    <div class="score">
-        Điểm: <span>7/10</span>
     </div>
 
-    <div class="time">
-        Thời gian: <span>10:31</span>
+
+
+    <!-- MAIN RESULT -->
+
+    <div class="result-container">
+
+
+        <!-- QUESTION LIST -->
+
+        <div class="result-left">
+
+            <h3>Danh sách câu hỏi</h3>
+
+            <div class="question-grid">
+
+                <div class="qbox correct" onclick="showQuestion(1)">01</div>
+                <div class="qbox wrong" onclick="showQuestion(2)">02</div>
+                <div class="qbox correct" onclick="showQuestion(3)">03</div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- QUESTION DETAIL -->
+
+        <div class="result-right">
+
+
+            <!-- QUESTION 1 -->
+
+            <div class="question" id="q1">
+
+                <p><b>Câu 1:</b> Chủ nghĩa Mác nói chung, triết học Mác nói riêng ra đời vào những năm nào của thế kỷ
+                    XIX?</p>
+
+                <label class="option">
+                    <input type="radio" disabled>
+                    A. Những năm 30 của thế kỷ XIX.
+                </label>
+
+                <label class="option correct user-answer">
+                    <input type="radio" checked disabled>
+                    B. Những năm 40 của thế kỷ XIX.
+                </label>
+
+                <label class="option">
+                    <input type="radio" disabled>
+                    C. Những năm 50 của thế kỷ XIX.
+                </label>
+
+                <label class="option">
+                    <input type="radio" disabled>
+                    D. Những năm 20 của thế kỷ XIX.
+                </label>
+
+                <div class="answer-note correct">
+                    ✔ Bạn chọn đúng
+                </div>
+
+            </div>
+
+
+            <!-- QUESTION 2 -->
+
+            <div class="question" id="q2">
+
+                <p><b>Câu 2:</b> Hãy chỉ ra quan niệm đầy đủ, đúng đắn về triết học</p>
+
+                <label class="option">
+                    <input type="radio" disabled>
+                    A. Hệ thống tri thức về kinh tế và chính trị.
+                </label>
+
+                <label class="option correct">
+                    <input type="radio" disabled>
+                    B. Hệ thống tri thức lý luận chung nhất về thế giới.
+                </label>
+
+                <label class="option wrong user-answer">
+                    <input type="radio" checked disabled>
+                    C. Nghệ thuật tranh luận.
+                </label>
+
+                <label class="option">
+                    <input type="radio" disabled>
+                    D. Khoa học của mọi khoa học.
+                </label>
+
+                <div class="answer-note wrong">
+                    ✘ Bạn chọn sai — Đáp án đúng: B
+                </div>
+
+            </div>
+
+
+            <!-- QUESTION 3 -->
+
+            <div class="question" id="q3">
+
+                <p><b>Câu 3:</b> Nguồn gốc của sự ra đời triết học là</p>
+
+                <label class="option">
+                    <input type="radio" disabled>
+                    A. Nguồn gốc nhận thức.
+                </label>
+
+                <label class="option">
+                    <input type="radio" disabled>
+                    B. Nguồn gốc nhận thức và tự nhiên.
+                </label>
+
+                <label class="option">
+                    <input type="radio" disabled>
+                    C. Nguồn gốc xã hội.
+                </label>
+
+                <label class="option correct user-answer">
+                    <input type="radio" checked disabled>
+                    D. Nguồn gốc nhận thức và xã hội.
+                </label>
+
+                <div class="answer-note correct">
+                    ✔ Bạn chọn đúng
+                </div>
+
+            </div>
+
+
+        </div>
+
     </div>
 
-</div>
 
 
+    <!-- AI RECOMMENDATION -->
 
-<!-- MAIN RESULT -->
+    <div class="ai-box">
 
-<div class="result-container">
+        <h2>AI Learning Recommendation</h2>
 
+        <p>Dựa trên kết quả bài kiểm tra, AI nhận thấy bạn còn yếu ở các nội dung sau:</p>
 
-<!-- QUESTION LIST -->
+        <ul>
 
-<div class="result-left">
+            <li>Nguồn gốc của triết học</li>
 
-<h3>Danh sách câu hỏi</h3>
+            <li>Bản chất của triết học</li>
 
-<div class="question-grid">
+            <li>Lịch sử hình thành triết học Mác</li>
 
-<div class="qbox correct" onclick="showQuestion(1)">01</div>
-<div class="qbox wrong" onclick="showQuestion(2)">02</div>
-<div class="qbox correct" onclick="showQuestion(3)">03</div>
+        </ul>
 
-</div>
+        <div class="learning-path">
 
-</div>
+            <h3>Lộ trình học gợi ý</h3>
 
+            <ol>
 
+                <li>Ôn tập: Khái niệm và nguồn gốc triết học</li>
 
-<!-- QUESTION DETAIL -->
+                <li>Học lại: Nội dung cơ bản của triết học Mác</li>
 
-<div class="result-right">
+                <li>Làm lại quiz mức độ Intermediate</li>
 
+            </ol>
 
-<!-- QUESTION 1 -->
+        </div>
 
-<div class="question" id="q1">
+        <button class="continue-btn">
+            Tiếp tục học
+        </button>
 
-<p><b>Câu 1:</b> Chủ nghĩa Mác nói chung, triết học Mác nói riêng ra đời vào những năm nào của thế kỷ XIX?</p>
+    </div>
 
-<label class="option">
-<input type="radio" disabled>
-A. Những năm 30 của thế kỷ XIX.
-</label>
 
-<label class="option correct user-answer">
-<input type="radio" checked disabled>
-B. Những năm 40 của thế kỷ XIX.
-</label>
 
-<label class="option">
-<input type="radio" disabled>
-C. Những năm 50 của thế kỷ XIX.
-</label>
+    <script>
 
-<label class="option">
-<input type="radio" disabled>
-D. Những năm 20 của thế kỷ XIX.
-</label>
+        function showQuestion(num) {
 
-<div class="answer-note correct">
-✔ Bạn chọn đúng
-</div>
+            let questions = document.querySelectorAll(".question")
 
-</div>
+            questions.forEach(q => {
+                q.style.display = "none"
+            })
 
+            document.getElementById("q" + num).style.display = "block"
 
-<!-- QUESTION 2 -->
+        }
 
-<div class="question" id="q2">
+        window.onload = function () {
+            showQuestion(1)
+        }
 
-<p><b>Câu 2:</b> Hãy chỉ ra quan niệm đầy đủ, đúng đắn về triết học</p>
-
-<label class="option">
-<input type="radio" disabled>
-A. Hệ thống tri thức về kinh tế và chính trị.
-</label>
-
-<label class="option correct">
-<input type="radio" disabled>
-B. Hệ thống tri thức lý luận chung nhất về thế giới.
-</label>
-
-<label class="option wrong user-answer">
-<input type="radio" checked disabled>
-C. Nghệ thuật tranh luận.
-</label>
-
-<label class="option">
-<input type="radio" disabled>
-D. Khoa học của mọi khoa học.
-</label>
-
-<div class="answer-note wrong">
-✘ Bạn chọn sai — Đáp án đúng: B
-</div>
-
-</div>
-
-
-<!-- QUESTION 3 -->
-
-<div class="question" id="q3">
-
-<p><b>Câu 3:</b> Nguồn gốc của sự ra đời triết học là</p>
-
-<label class="option">
-<input type="radio" disabled>
-A. Nguồn gốc nhận thức.
-</label>
-
-<label class="option">
-<input type="radio" disabled>
-B. Nguồn gốc nhận thức và tự nhiên.
-</label>
-
-<label class="option">
-<input type="radio" disabled>
-C. Nguồn gốc xã hội.
-</label>
-
-<label class="option correct user-answer">
-<input type="radio" checked disabled>
-D. Nguồn gốc nhận thức và xã hội.
-</label>
-
-<div class="answer-note correct">
-✔ Bạn chọn đúng
-</div>
-
-</div>
-
-
-</div>
-
-</div>
-
-
-
-<!-- AI RECOMMENDATION -->
-
-<div class="ai-box">
-
-<h2>AI Learning Recommendation</h2>
-
-<p>Dựa trên kết quả bài kiểm tra, AI nhận thấy bạn còn yếu ở các nội dung sau:</p>
-
-<ul>
-
-<li>Nguồn gốc của triết học</li>
-
-<li>Bản chất của triết học</li>
-
-<li>Lịch sử hình thành triết học Mác</li>
-
-</ul>
-
-<div class="learning-path">
-
-<h3>Lộ trình học gợi ý</h3>
-
-<ol>
-
-<li>Ôn tập: Khái niệm và nguồn gốc triết học</li>
-
-<li>Học lại: Nội dung cơ bản của triết học Mác</li>
-
-<li>Làm lại quiz mức độ Intermediate</li>
-
-</ol>
-
-</div>
-
-<button class="continue-btn">
-Tiếp tục học
-</button>
-
-</div>
-
-
-
-<script>
-
-function showQuestion(num){
-
-let questions=document.querySelectorAll(".question")
-
-questions.forEach(q=>{
-q.style.display="none"
-})
-
-document.getElementById("q"+num).style.display="block"
-
-}
-
-window.onload=function(){
-showQuestion(1)
-}
-
-</script>
+    </script>
 
 </body>
+
 </html>

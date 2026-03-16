@@ -1,222 +1,222 @@
-body{
-margin:0;
-font-family:Arial;
-background:#f2f2f2;
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #f2f2f2;
 }
 
-.header{
-background:#e60023;
-color:white;
-padding:15px 30px;
-display:flex;
-justify-content:space-between;
+.header {
+    background: #e60023;
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
 }
 
 /* TITLE */
 
-.result-title{
-text-align:center;
-margin-top:20px;
+.result-title {
+    text-align: center;
+    margin-top: 20px;
 }
 
 /* SCORE */
 
-.score-box{
+.score-box {
 
-width:420px;
-margin:20px auto;
+    width: 420px;
+    margin: 20px auto;
 
 
-padding:20px;
+    padding: 20px;
 
-border-radius:8px;
+    border-radius: 8px;
 
-display:flex;
-justify-content:space-between;
+    display: flex;
+    justify-content: space-between;
 
 
 }
 
-.score span{
-color:#e60023;
-font-weight:bold;
+.score span {
+    color: #e60023;
+    font-weight: bold;
 }
 
 
-.time span{
-color:#4CAF50;
-font-weight:bold;
+.time span {
+    color: #4CAF50;
+    font-weight: bold;
 }
 
 
 /* MAIN RESULT */
 
-.result-container{
+.result-container {
 
-display:flex;
+    display: flex;
 
-width:1100px;
+    width: 1100px;
 
-margin:30px auto;
+    margin: 30px auto;
 
-gap:40px;
+    gap: 40px;
 
 }
 
 
 /* LEFT */
 
-.result-left{
-width:200px;
+.result-left {
+    width: 200px;
 }
 
-.question-grid{
+.question-grid {
 
-display:grid;
+    display: grid;
 
-grid-template-columns:repeat(3,50px);
+    grid-template-columns: repeat(3, 50px);
 
-gap:10px;
-
-}
-
-.qbox{
-
-border:1px solid #ccc;
-
-padding:10px;
-
-text-align:center;
-
-cursor:pointer;
-
-border-radius:6px;
+    gap: 10px;
 
 }
 
-.qbox.correct{
-background:#4CAF50;
-color:white;
+.qbox {
+
+    border: 1px solid #ccc;
+
+    padding: 10px;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    border-radius: 6px;
+
 }
 
-.qbox.wrong{
-background:#f44336;
-color:white;
+.qbox.correct {
+    background: #4CAF50;
+    color: white;
+}
+
+.qbox.wrong {
+    background: #f44336;
+    color: white;
 }
 
 
 /* RIGHT */
 
-.result-right{
-flex:1;
+.result-right {
+    flex: 1;
 }
 
-.question{
+.question {
 
-background:white;
+    background: white;
 
-padding:20px;
+    padding: 20px;
 
-border-radius:8px;
-
-}
-
-.option{
-
-display:block;
-
-padding:10px;
-
-border:1px solid #ddd;
-
-border-radius:6px;
-
-margin-bottom:10px;
+    border-radius: 8px;
 
 }
 
-.option.correct{
-background:#d4edda;
+.option {
+
+    display: block;
+
+    padding: 10px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 6px;
+
+    margin-bottom: 10px;
+
 }
 
-.option.wrong{
-background:#f8d7da;
+.option.correct {
+    background: #d4edda;
+}
+
+.option.wrong {
+    background: #f8d7da;
 }
 
 
 /* NOTE */
 
-.answer-note{
-margin-top:10px;
-font-weight:bold;
+.answer-note {
+    margin-top: 10px;
+    font-weight: bold;
 }
 
-.answer-note.correct{
-color:green;
+.answer-note.correct {
+    color: green;
 }
 
-.answer-note.wrong{
-color:red;
+.answer-note.wrong {
+    color: red;
 }
 
 
 /* AI BOX */
 
-.ai-box{
+.ai-box {
 
-width:1100px;
+    width: 1100px;
 
-margin:30px auto;
+    margin: 30px auto;
 
-background:white;
+    background: white;
 
-padding:25px;
+    padding: 25px;
 
-border-radius:10px;
+    border-radius: 10px;
 
-box-shadow:0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 
 }
 
-.ai-box h2{
-color:#e60023;
+.ai-box h2 {
+    color: #e60023;
 }
 
-.learning-path{
+.learning-path {
 
-background:#f9f9f9;
+    background: #f9f9f9;
 
-padding:15px;
+    padding: 15px;
 
-border-radius:6px;
+    border-radius: 6px;
 
-margin-top:10px;
+    margin-top: 10px;
 
 }
 
 
 /* BUTTON */
 
-.continue-btn{
+.continue-btn {
 
-margin-top:20px;
+    margin-top: 20px;
 
-background:#e60023;
+    background: #e60023;
 
-color:white;
+    color: white;
 
-border:none;
+    border: none;
 
-padding:12px 20px;
+    padding: 12px 20px;
 
-border-radius:6px;
+    border-radius: 6px;
 
-cursor:pointer;
+    cursor: pointer;
 
-font-size:16px;
+    font-size: 16px;
 
 }
 
-.continue-btn:hover{
-background:#c4001d;
+.continue-btn:hover {
+    background: #c4001d;
 }
