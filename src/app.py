@@ -34,6 +34,14 @@ def register():
 
     return render_template("register.html")
 
+
+# HOME PAGE
+@app.route("/home")
+def home():
+    return render_template("home.html")
+
+
+# COURSE PAGE
 @app.route("/course/<course_name>")
 def course(course_name):
 
@@ -58,10 +66,38 @@ def course(course_name):
     )
 
 
-# HOME PAGE (dashboard)
-@app.route("/home")
-def home():
-    return render_template("home.html")
+# QUIZ PAGE
+@app.route("/quiz")
+def quiz():
+    return render_template("quiz.html")
+
+
+# RESULT PAGE (xử lý khi bấm Nộp bài)
+@app.route("/result", methods=["POST"])
+def result():
+
+    score = 0
+    total = 3
+
+    # đáp án đúng
+    answers = {
+        "q1": "A",
+        "q2": "B",
+        "q3": "C"
+    }
+
+    # kiểm tra đáp án
+    for key in answers:
+        user_answer = request.form.get(key)
+
+        if user_answer == answers[key]:
+            score += 1
+
+    return render_template(
+        "result.html",
+        score=score,
+        total=total
+    )
 
 
 if __name__ == "__main__":

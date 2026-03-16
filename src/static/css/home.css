@@ -201,3 +201,70 @@ body {
     font-size: 13px;
 
 }
+
+.exercise-item{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:white;
+padding:12px;
+margin:10px 0;
+border-radius:6px;
+}
+
+.exercise-info{
+font-size:14px;
+}
+
+.title{
+font-weight:bold;
+}
+
+.meta{
+font-size:12px;
+color:#666;
+}
+
+.exercise-action{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.progress-box{
+background:#6ddf6d;
+padding:6px 12px;
+border-radius:4px;
+font-weight:bold;
+}
+
+.continue-btn{
+background:#30c6f2;
+border:none;
+padding:6px 12px;
+border-radius:4px;
+cursor:pointer;
+}
+
+.review-btn{
+background:#ff9800;
+border:none;
+padding:6px 12px;
+border-radius:4px;
+cursor:pointer;
+}
+
+.status{
+background:#ccc;
+padding:6px 10px;
+border-radius:4px;
+}
+
+.done{
+background:#4caf50;
+color:white;
+}
+
+.not-start{
+background:#bdbdbd;
+}
