@@ -28,19 +28,62 @@ Hệ thống sử dụng các mô hình học máy cơ bản nhưng hiệu quả
 - KNN: Tìm kiếm các học viên có hành vi tương tự để đưa ra gợi ý cộng tác.
 ## 🏗️ Cấu trúc thư mục
 ```text
-├── data/               # Chứa tập dữ liệu huấn luyện (Dataset)
-├── models/             # Lưu trữ các model AI đã được huấn luyện (.pkl)
-├── notebooks/          # File Jupyter Notebook để phân tích dữ liệu (EDA)
-├── src/                # Mã nguồn chính của ứng dụng
-│   ├── config/         # Cấu hình hệ thống (Database, App settings)
-│   ├── controllers/    # API Routers (Xử lý request/response)
-│   ├── models/         # Database models (SQLAlchemy)
-│   ├── services/       # Logic xử lý AI và nghiệp vụ
-│   └── server.py       # Điểm khởi chạy ứng dụng FastAPI
-├── .env                # File chứa biến môi trường (Bảo mật thông tin)
-├── .gitignore          # Các file không đẩy lên GitHub (venv, .env...)
-├── requirements.txt    # Danh sách thư viện cần cài đặt
-└── README.md           # Tài liệu hướng dẫn dự án
+Adaptive-Learning-AI/
+     ├── data/                       # Thư mục chứa dữ liệu huấn luyện
+     │   └── students_data.csv       # File CSV chứa 500 mẫu dữ liệu sinh viên
+     ├── models/                     # Thư mục lưu trữ các mô hình AI (.pkl)
+     │   ├── kmeans_model.pkl        # Mô hình phân cụm (Giỏi/Khá/TB)
+     │   ├── dtree_model.pkl         # Mô hình cây quyết định (Dự đoán Đạt/Trượt)
+     │   └── scaler.pkl              # Bộ chuẩn hóa dữ liệu đầu vào
+     ├── src/
+     │   ├── main/
+     │   │   ├── ai/                 # [MỚI] Bộ não AI chính thức
+     │   │   │   ├── __init__.py
+     │   │   │   └── ai_engine.py    # Chứa logic 3 mô hình K-Means, D-Tree, KNN
+     │   │   ├── config/
+     │   │   │   └── settings.py     # Cấu hình Database & Secret Key
+     │   │   ├── controllers/
+     │   │   │   └── auth_controller.py # Xử lý Đăng ký/Đăng nhập (đã sửa maSV)
+     │   │   ├── domain/
+     │   │   │   ├── models/         # Các Model SQLAlchemy (đã sửa khóa ngoại)
+     │   │   │   │   ├── user_model.py
+     │   │   │   │   ├── course_model.py
+     │   │   │   │   ├── chapter_model.py
+     │   │   │   │   └── study_result_model.py
+     │   │   │   └── schemas/        # Pydantic Schemas cho API
+     │   │   ├── repositories/
+     │   │   │   └── user_repository.py # Truy vấn DB người dùng (đã sửa maSV)
+     │   │   ├── routes/
+     │   │   │   ├── auth_routes.py  # Route Auth (đã sửa Cookie Path & maSV)
+     │   │   │   ├── system_routes.py # [CẬP NHẬT] Thêm API /api/chat
+     │   │   │   └── view_routes.py  # [CẬP NHẬT] Thêm logic lấy hoTen cho Home/Result
+     │   │   ├── services/
+     │   │   │   ├── ai_service.py   # [CẬP NHẬT] Kết nối ALEngine & AIService
+     │   │   │   ├── auth_service.py # Logic xác thực bcrypt mới
+     │   │   │   └── security_service.py # [SỬA LỖI] Dùng bcrypt trực tiếp
+     │   │   └── database.py         # Kết nối SQLAlchemy
+     │   ├── test/                   # Thư mục dành riêng cho kiểm thử
+     │   │   ├── ai_engine.py        # [CẬP NHẬT] Script test AI (không chứa logic core)
+     │   │   ├── seed_user.py        # Script tạo user 'tester' ban đầu
+     │   │   ├── fix_tester.py       # Script sửa lỗi hash mật khẩu
+     │   │   └── test_db.py          # Kiểm tra kết nối MySQL
+     │   ├── app.py                  # File Flask cũ (chỉ dùng tham khảo)
+     │   └── server.py               # [ENTRY POINT] File khởi chạy FastAPI
+     ├── static/
+     │   ├── css/
+     │   │   ├── style.css           # CSS chung
+     │   │   ├── home.css            # CSS cho trang chủ
+     │   │   ├── result.css          # CSS cho trang kết quả
+     │   │   └── AI.css              # [MỚI] CSS riêng cho Chatbot Robot
+     │   └── img/                    # Chứa hình ảnh logo, minh họa
+     ├── templates/                  # Giao diện HTML (đã sửa url_for path)
+     │   ├── home.html               # [CẬP NHẬT] Tích hợp khung Chat & hoTen
+     │   ├── login.html
+     │   ├── register.html           # [CẬP NHẬT] Tự động đăng nhập sau khi ĐK
+     │   ├── result.html             # [CẬP NHẬT] Hiển thị gợi ý AI & hoTen
+     │   ├── quiz.html
+     │   └── course.html
+     ├── requirements.txt            # Danh sách thư viện (cần có bcrypt, scikit-learn)
 ```
 ## 🛠️ Công nghệ sử dụng
 Ngôn ngữ: Python 3.x
