@@ -1,18 +1,25 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 from src.main.config.settings import Config
 
-# 1. Tạo Engine (Động cơ kết nối)
-engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
+# 1️ Tạo engine kết nối database
+engine = create_engine(
+    Config.SQLALCHEMY_DATABASE_URI,
+    pool_pre_ping=True
+)
 
-# 2. Tạo SessionLocal (Nơi thực hiện các truy vấn)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# 2️ Session để thao tác DB
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
 
-# 3. Lớp cơ sở để định nghĩa các bảng (Models)
+# 3️ Base class cho các models
 Base = declarative_base()
 
-# Hàm bổ trợ để lấy DB cho mỗi request
+
+# 4️ Dependency dùng cho FastAPI
 def get_db():
     db = SessionLocal()
     try:

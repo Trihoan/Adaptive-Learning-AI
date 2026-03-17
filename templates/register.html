@@ -16,14 +16,14 @@
             <form action="/register" method="POST" id="registerForm">
                 <input type="text" name="username" placeholder="Username" required>
                 
-                <input type="password" name="password" id="password" placeholder="Password" required>
+                <input type="password" name="password" id="password" placeholder="Password" maxlength="72" required>
                 
-                <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm Password" required>
+                <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm Password" maxlength="72" required>
                 <span id="error-msg"></span>
                 <small id="error-msg" style="display: block; margin-bottom: 10px; min-height: 15px;"></small>
 
-                <input type="text" name="fullname" placeholder="Full Name">
-                <input type="text" name="student_id" placeholder="Student ID">
+                <input type="text" name="fullname" placeholder="Full Name" required>
+                <input type="text" name="student_id" placeholder="Student ID" required>
                 
                 <button type="submit" id="submitBtn">Sign Up</button>
             </form>
