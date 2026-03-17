@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ course_title }}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+
+</head>
+
+<body>
+
+    <h2>{{ course_title }}</h2>
+
+    <h3>Danh sách chương</h3>
+
+    <ul>
+
+        {% for chapter in chapters %}
+
+        <li>{{ chapter }}</li>
+
+        {% endfor %}
+
+    </ul>
+
+</body>
+
+</html>

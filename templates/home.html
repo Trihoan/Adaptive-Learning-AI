@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>ALAS - Home</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <div class="logo">
+            Adaptive Learning AI
+        </div>
+
+        <div class="user">
+            Hoang Kien
+            <i class="fa-regular fa-circle-user avatar"></i>
+        </div>
+
+    </div>
+
+
+    <!-- SUBJECT LIST -->
+
+    <div class="subjects">
+
+        <div id="triethoc" class="subject" onclick="showChapters('triethoc')">
+            Triết học Mác - Lênin
+        </div>
+
+        <div id="xahoi" class="subject" onclick="showChapters('xahoi')">
+            Chủ nghĩa xã hội khoa học
+        </div>
+
+    </div>
+
+
+    <!-- EXERCISE LIST -->
+
+    <div id="chapter-list" class="exercise"></div>
+
+
+    <script>
+
+        /* DỮ LIỆU GIẢ (SAU NÀY SẼ LẤY TỪ DATABASE) */
+
+        const courses = {
+
+            triethoc: [
+
+                {
+                    title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 1",
+                    time: "Còn lại 4h",
+                    done: 1221,
+                    total: 209,
+                    progress: 70
+                },
+
+                {
+                    title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 2",
+                    time: "Còn lại 4h",
+                    done: 599,
+                    total: 297,
+                    progress: 0
+                },
+
+                {
+                    title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 3",
+                    time: "Còn lại 4h",
+                    done: 800,
+                    total: 300,
+                    progress: 100
+                }
+
+            ],
+
+            xahoi: [
+
+                {
+                    title: "Đề trắc nghiệm CNXH khoa học số 1",
+                    time: "Còn lại 3h",
+                    done: 200,
+                    total: 100,
+                    progress: 40
+                },
+
+                {
+                    title: "Đề trắc nghiệm CNXH khoa học số 2",
+                    time: "Còn lại 3h",
+                    done: 0,
+                    total: 120,
+                    progress: 0
+                }
+
+            ]
+
+        }
+
+
+        /* HIỂN THỊ DANH SÁCH BÀI */
+
+        function showChapters(course) {
+
+            let html = ""
+
+            html += `<h3>Danh sách bài luyện tập</h3>`
+
+            courses[course].forEach(ex => {
+
+                let action = ""
+
+                if (ex.progress == 0) {
+
+                    action = `
+<div class="status not-start" onclick="goQuiz()" style="cursor:pointer">
+Chưa làm
+</div>
+`
+
+                }
+
+                else if (ex.progress == 100) {
+
+                    action = `
+<div class="status done">Hoàn thành</div>
+<button class="review-btn" onclick="goQuiz()">Ôn tập lại</button>
+`
+
+                }
+
+                else {
+
+                    action = `
+<div class="progress-box">${ex.progress}%</div>
+<button class="continue-btn" onclick="goQuiz()">Tiếp tục</button>
+`
+
+                }
+
+                html += `
+<div class="exercise-item">
+
+<div class="exercise-info">
+
+<div class="title">
+${ex.title}
+</div>
+
+<div class="meta">
+${ex.time} &nbsp;&nbsp; ${ex.done} đã làm &nbsp;&nbsp; ${ex.total} câu hỏi
+</div>
+
+</div>
+
+<div class="exercise-action">
+
+${action}
+
+</div>
+
+</div>
+`
+
+            })
+
+
+            document.getElementById("chapter-list").innerHTML = html
+
+
+            /* HIGHLIGHT MÔN HỌC */
+
+            let subjects = document.querySelectorAll(".subject")
+
+            subjects.forEach(sub => {
+                sub.classList.remove("active")
+            })
+
+            document.getElementById(course).classList.add("active")
+
+        }
+
+
+        /* CHUYỂN SANG TRANG QUIZ */
+
+        function goQuiz() {
+
+            window.location.href = "/quiz"
+
+        }
+
+
+        /* LOAD MẶC ĐỊNH */
+
+        window.onload = function () {
+            showChapters("triethoc")
+        }
+
+    </script>
+
+</body>
+
+</html>

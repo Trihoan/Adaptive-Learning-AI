@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+    <title>Quiz</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/quiz.css') }}">
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js"></script>
+
+</head>
+
+<body>
+
+    <div class="header">
+
+        <div class="logo">
+            Adaptive Learning AI
+        </div>
+
+        <div class="user">
+            Hoang Kien
+            <i class="fa-regular fa-circle-user avatar"></i>
+        </div>
+
+    </div>
+
+
+    <div class="quiz-container">
+
+        <form id="quizForm" method="POST" action="/result" style="display:flex; gap:40px; width:100%;">
+
+
+            <!-- LEFT SIDE -->
+
+            <div class="quiz-left">
+
+                <div class="quiz-title">
+                    Triết học Mác - Lênin
+                </div>
+
+                <div class="quiz-time">
+                    Thời gian: 10:31
+                </div>
+
+
+
+                <!-- QUESTION 1 -->
+
+                <div class="question" id="q1">
+
+                    <p><b>Câu 1:</b> Chủ nghĩa Mác nói chung, triết học Mác nói riêng ra đời vào những năm nào của thế
+                        kỷ XIX?</p>
+
+                    <label>
+                        <input type="radio" name="q1" value="A" onclick="answerQuestion(1)">
+                        A. Những năm 30 của thế kỷ XIX.
+                    </label>
+
+                    <label>
+                        <input type="radio" name="q1" value="B" onclick="answerQuestion(1)">
+                        B. Những năm 40 của thế kỷ XIX.
+                    </label>
+
+                    <label>
+                        <input type="radio" name="q1" value="C" onclick="answerQuestion(1)">
+                        C. Những năm 50 của thế kỷ XIX.
+                    </label>
+
+                    <label>
+                        <input type="radio" name="q1" value="D" onclick="answerQuestion(1)">
+                        D. Những năm 20 của thế kỷ XIX.
+                    </label>
+
+                </div>
+
+
+
+                <!-- QUESTION 2 -->
+
+                <div class="question" id="q2">
+
+                    <p><b>Câu 2:</b> Hãy chỉ ra quan niệm đầy đủ, đúng đắn về triết học</p>
+
+                    <label>
+                        <input type="radio" name="q2" value="A" onclick="answerQuestion(2)">
+                        A. Hệ thống tri thức về kinh tế và chính trị.
+                    </label>
+
+                    <label>
+                        <input type="radio" name="q2" value="B" onclick="answerQuestion(2)">
+                        B. Hệ thống tri thức lý luận chung nhất về thế giới và vị trí, vai trò của con người trong thế
+                        giới ấy.
+                    </label>
+
+                    <label>
+                        <input type="radio" name="q2" value="C" onclick="answerQuestion(2)">
+                        C. Nghệ thuật tranh luận.
+                    </label>
+
+                    <label>
+                        <input type="radio" name="q2" value="D" onclick="answerQuestion(2)">
+                        D. Khoa học của mọi khoa học.
+                    </label>
+
+                </div>
+
+
+
+                <!-- QUESTION 3 -->
+
+                <div class="question" id="q3">
+
+                    <p><b>Câu 3:</b> Nguồn gốc của sự ra đời triết học là</p>
+
+                    <label>
+                        <input type="radio" name="q3" value="A" onclick="answerQuestion(3)">
+                        A. Nguồn gốc nhận thức.
+                    </label>
+
+                    <label>
+                        <input type="radio" name="q3" value="B" onclick="answerQuestion(3)">
+                        B. Nguồn gốc nhận thức và nguồn gốc tự nhiên.
+                    </label>
+
+                    <label>
+                        <input type="radio" name="q3" value="C" onclick="answerQuestion(3)">
+                        C. Nguồn gốc xã hội.
+                    </label>
+
+                    <label>
+                        <input type="radio" name="q3" value="D" onclick="answerQuestion(3)">
+                        D. Nguồn gốc nhận thức và nguồn gốc xã hội.
+                    </label>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- RIGHT SIDE -->
+
+            <div class="quiz-right">
+
+                <h3>Danh sách câu hỏi</h3>
+
+                <div class="question-grid">
+
+                    <div class="qbox" id="box1" onclick="showQuestion(1)">01</div>
+                    <div class="qbox" id="box2" onclick="showQuestion(2)">02</div>
+                    <div class="qbox" id="box3" onclick="showQuestion(3)">03</div>
+
+                </div>
+
+                <button type="button" class="submit-btn" onclick="submitQuiz()">
+                    Nộp bài
+                </button>
+
+            </div>
+
+
+        </form>
+
+    </div>
+
+
+
+    <script>
+
+        /* HIỂN THỊ 1 CÂU HỎI */
+
+        function showQuestion(num) {
+
+            let questions = document.querySelectorAll(".question")
+
+            questions.forEach(q => {
+                q.style.display = "none"
+            })
+
+            document.getElementById("q" + num).style.display = "block"
+
+        }
+
+
+        /* CHỌN ĐÁP ÁN → Ô SỐ CHUYỂN XANH */
+
+        function answerQuestion(num) {
+
+            let box = document.getElementById("box" + num)
+
+            box.style.background = "#4CAF50"
+            box.style.color = "white"
+
+        }
+
+
+        /* NỘP BÀI */
+
+        function submitQuiz() {
+
+            let confirmSubmit = confirm("Bạn có chắc muốn nộp bài?")
+
+            if (confirmSubmit) {
+
+                document.getElementById("quizForm").submit()
+
+            }
+
+        }
+
+
+        /* HIỂN THỊ CÂU 1 MẶC ĐỊNH */
+
+        window.onload = function () {
+
+            showQuestion(1)
+
+        }
+
+    </script>
+
+</body>
+
+</html>
