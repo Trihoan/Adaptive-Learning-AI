@@ -37,7 +37,7 @@ Adaptive-Learning-AI/
      │   └── scaler.pkl              # Bộ chuẩn hóa dữ liệu đầu vào
      ├── src/
      │   ├── main/
-     │   │   ├── ai/                 # [MỚI] Bộ não AI chính thức
+     │   │   ├── ai/                 
      │   │   │   ├── __init__.py
      │   │   │   └── ai_engine.py    # Chứa logic 3 mô hình K-Means, D-Tree, KNN
      │   │   ├── config/
@@ -52,19 +52,19 @@ Adaptive-Learning-AI/
      │   │   │   │   └── study_result_model.py
      │   │   │   └── schemas/        # Pydantic Schemas cho API
      │   │   ├── repositories/
-     │   │   │   └── user_repository.py # Truy vấn DB người dùng (đã sửa maSV)
+     │   │   │   └── user_repository.py # Truy vấn DB người dùng 
      │   │   ├── routes/
-     │   │   │   ├── auth_routes.py  # Route Auth (đã sửa Cookie Path & maSV)
-     │   │   │   ├── system_routes.py # [CẬP NHẬT] Thêm API /api/chat
-     │   │   │   └── view_routes.py  # [CẬP NHẬT] Thêm logic lấy hoTen cho Home/Result
+     │   │   │   ├── auth_routes.py  # Route Auth 
+     │   │   │   ├── system_routes.py 
+     │   │   │   └── view_routes.py 
      │   │   ├── services/
-     │   │   │   ├── ai_service.py   # [CẬP NHẬT] Kết nối ALEngine & AIService
+     │   │   │   ├── ai_service.py   
      │   │   │   ├── auth_service.py # Logic xác thực bcrypt mới
-     │   │   │   └── security_service.py # [SỬA LỖI] Dùng bcrypt trực tiếp
+     │   │   │   └── security_service.py 
      │   │   └── database.py         # Kết nối SQLAlchemy
      │   ├── test/                   # Thư mục dành riêng cho kiểm thử
-     │   │   ├── ai_engine.py        # [CẬP NHẬT] Script test AI (không chứa logic core)
-     │   │   ├── seed_user.py        # Script tạo user 'tester' ban đầu
+     │   │   ├── ai_engine.py        
+     │   │   ├── seed_user.py        
      │   │   ├── fix_tester.py       # Script sửa lỗi hash mật khẩu
      │   │   └── test_db.py          # Kiểm tra kết nối MySQL
      │   ├── app.py                  # File Flask cũ (chỉ dùng tham khảo)
@@ -77,10 +77,10 @@ Adaptive-Learning-AI/
      │   │   └── AI.css              # [MỚI] CSS riêng cho Chatbot Robot
      │   └── img/                    # Chứa hình ảnh logo, minh họa
      ├── templates/                  # Giao diện HTML (đã sửa url_for path)
-     │   ├── home.html               # [CẬP NHẬT] Tích hợp khung Chat & hoTen
+     │   ├── home.html               
      │   ├── login.html
-     │   ├── register.html           # [CẬP NHẬT] Tự động đăng nhập sau khi ĐK
-     │   ├── result.html             # [CẬP NHẬT] Hiển thị gợi ý AI & hoTen
+     │   ├── register.html           
+     │   ├── result.html             
      │   ├── quiz.html
      │   └── course.html
      ├── requirements.txt            # Danh sách thư viện (cần có bcrypt, scikit-learn)
