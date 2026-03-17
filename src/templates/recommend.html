@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>AI Learning Path</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/recommend.css') }}">
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js"></script>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">Adaptive Learning AI</div>
+        <div class="user">
+            Hoang Kien <i class="fa-regular fa-circle-user"></i>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="container">
+
+        <!-- TITLE -->
+        <div class="section title">
+            🎯 Lộ trình học tập cá nhân hóa
+        </div>
+
+        <!-- AI ANALYSIS -->
+        <div class="section card">
+            <h2>📊 Phân tích của AI</h2>
+            <ul id="analysis-list"></ul>
+        </div>
+
+        <!-- LEARNING PATH -->
+        <div class="section card">
+            <h2>📚 Lộ trình học đề xuất</h2>
+            <div id="learning-path"></div>
+        </div>
+
+        <!-- ACTION -->
+        <div class="section card center">
+            <h2>🚀 Bắt đầu học</h2>
+            <p>Hệ thống sẽ chọn bài học phù hợp với bạn</p>
+            <button class="start-btn" onclick="startLearning()">
+                Bắt đầu học theo AI
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+
+        // DATA GIẢ (sau này sẽ thay bằng data từ Flask)
+        const resultData = [
+            { topic: "nguon_goc", correct: false },
+            { topic: "ban_chat", correct: false },
+            { topic: "lich_su", correct: true }
+        ]
+
+        // PHÂN TÍCH ĐIỂM YẾU
+        function analyze() {
+            let weak = {}
+
+            resultData.forEach(q => {
+                if (!q.correct) {
+                    weak[q.topic] = (weak[q.topic] || 0) + 1
+                }
+            })
+
+            return weak
+        }
+
+        // HIỂN THỊ AI
+        function generateAI() {
+
+            let weak = analyze()
+
+            let analysisHTML = ""
+            let pathHTML = ""
+
+            if (weak["nguon_goc"]) {
+                analysisHTML += `<li class="weak">Bạn yếu: Nguồn gốc triết học</li>`
+                pathHTML += `<div class="path-step">Ôn tập: Nguồn gốc triết học</div>`
+            }
+
+            if (weak["ban_chat"]) {
+                analysisHTML += `<li class="weak">Bạn yếu: Bản chất triết học</li>`
+                pathHTML += `<div class="path-step">Học lại: Bản chất triết học</div>`
+            }
+
+            if (analysisHTML === "") {
+                analysisHTML = `<li class="good">Bạn làm rất tốt 🎉</li>`
+                pathHTML = `<div class="path-step">Làm bài nâng cao</div>`
+            }
+
+            document.getElementById("analysis-list").innerHTML = analysisHTML
+            document.getElementById("learning-path").innerHTML = pathHTML
+        }
+
+        // 🔥 CHỌN TOPIC YẾU NHẤT (GIỐNG AI)
+        function getWeakestTopic(weak) {
+            let max = 0
+            let weakest = null
+
+            for (let topic in weak) {
+                if (weak[topic] > max) {
+                    max = weak[topic]
+                    weakest = topic
+                }
+            }
+
+            return weakest
+        }
+
+        // 🚀 BẮT ĐẦU HỌC
+        function startLearning() {
+
+            let weak = analyze()
+            let weakestTopic = getWeakestTopic(weak)
+
+            if (weakestTopic) {
+                // đi đến quiz theo topic yếu
+                window.location.href = "/quiz?topic=" + weakestTopic
+            } else {
+                // nếu không có điểm yếu → học nâng cao
+                window.location.href = "/quiz?topic=advanced"
+            }
+        }
+
+        window.onload = generateAI
+
+    </script>
+
+</body>
+
+</html>

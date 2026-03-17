@@ -84,8 +84,7 @@
 
             <div class="question" id="q1">
 
-                <p><b>Câu 1:</b> Chủ nghĩa Mác nói chung, triết học Mác nói riêng ra đời vào những năm nào của thế kỷ
-                    XIX?</p>
+                <p><b>Câu 1:</b> Chủ nghĩa Mác nói chung, triết học Mác nói riêng ra đời vào những năm nào của thế kỷ XIX?</p>
 
                 <label class="option">
                     <input type="radio" disabled>
@@ -195,13 +194,9 @@
         <p>Dựa trên kết quả bài kiểm tra, AI nhận thấy bạn còn yếu ở các nội dung sau:</p>
 
         <ul>
-
             <li>Nguồn gốc của triết học</li>
-
             <li>Bản chất của triết học</li>
-
             <li>Lịch sử hình thành triết học Mác</li>
-
         </ul>
 
         <div class="learning-path">
@@ -209,18 +204,15 @@
             <h3>Lộ trình học gợi ý</h3>
 
             <ol>
-
                 <li>Ôn tập: Khái niệm và nguồn gốc triết học</li>
-
                 <li>Học lại: Nội dung cơ bản của triết học Mác</li>
-
                 <li>Làm lại quiz mức độ Intermediate</li>
-
             </ol>
 
         </div>
 
-        <button class="continue-btn">
+        <!-- ✅ ĐÃ SỬA NÚT -->
+        <button class="continue-btn" onclick="continueLearning()">
             Tiếp tục học
         </button>
 
@@ -244,6 +236,11 @@
 
         window.onload = function () {
             showQuestion(1)
+        }
+
+        // ✅ THÊM HÀM ĐIỀU HƯỚNG
+        function continueLearning() {
+            window.location.href = "/recommend";
         }
 
     </script>
