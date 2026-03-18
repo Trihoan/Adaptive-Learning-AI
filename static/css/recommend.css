@@ -1,0 +1,117 @@
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #f5f6fa;
+}
+
+/* HEADER */
+.header {
+    background: #e60023;
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* CONTAINER */
+.container {
+    width: 80%;
+    margin: 30px auto;
+}
+
+/* SECTION (xếp dọc) */
+.section {
+    margin-bottom: 20px;
+}
+
+/* TITLE */
+.title {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+/* CARD */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+/* CENTER */
+.center {
+    text-align: center;
+}
+
+/* TEXT */
+.weak {
+    color: #e60023;
+    font-weight: bold;
+}
+
+.good {
+    color: green;
+}
+
+/* PATH */
+.path-step {
+    background: #f2f2f2;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+/* BUTTON */
+.start-btn {
+    background: #e60023;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.start-btn:hover {
+    background: #c4001d;
+}
+
+/* AI SMART STYLES (NEW) */
+.ai-smart {
+    border-left: 5px solid #007bff;
+    background-color: #f0f7ff;
+}
+
+.status-badge {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.next-step-box {
+    background: #e9ecef;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    border: 1px dashed #6c757d;
+    font-style: italic;
+}
+
+.fa-check-double {
+    color: #28a745;
+    margin-right: 10px;
+}
+
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+ul li {
+    margin-bottom: 8px;
+}

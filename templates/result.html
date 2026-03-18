@@ -2,242 +2,131 @@
 <html>
 
 <head>
-
     <meta charset="UTF-8">
-    <title>Result</title>
-
+    <title>Kết quả bài thi</title>
     <link rel="stylesheet" href="{{ url_for('static', path='css/result.css') }}">
     <script src="https://kit.fontawesome.com/ca2ad9c616.js"></script>
-
 </head>
 
 <body>
 
     <!-- HEADER -->
-
     <div class="header">
-
-        <div class="logo">
-            Adaptive Learning AI
-        </div>
-
+        <div class="logo">Adaptive Learning AI</div>
         <div class="user">
-            {{ user_fullname }}
-            <i class="fa-regular fa-circle-user avatar"></i>
+            {{ user_fullname }} <i class="fa-regular fa-circle-user avatar"></i>
         </div>
-
     </div>
 
-
     <!-- TITLE -->
-
     <div class="result-title">
         <h1>Kết quả bài kiểm tra</h1>
     </div>
 
-
     <!-- SCORE -->
-
     <div class="score-box">
-
         <div class="score">
-            Điểm: <span>{{ score }}/{{ total }}</span>
+            Điểm của bạn: <span>{{ score }}/{{ total }}</span>
         </div>
-
         <div class="time">
-            Trạng thái: <span>{{ ai_rec.status }}</span>
+            Đánh giá: <span>{{ ai_rec.status if ai_rec else 'Chưa có đánh giá' }}</span>
         </div>
-
     </div>
-
-
 
     <!-- MAIN RESULT -->
-
     <div class="result-container">
 
-
-        <!-- QUESTION LIST -->
-
+        <!-- LEFT SIDE: QUESTION LIST -->
         <div class="result-left">
-
             <h3>Danh sách câu hỏi</h3>
-
             <div class="question-grid">
-
-                <div class="qbox correct" onclick="showQuestion(1)">01</div>
-                <div class="qbox wrong" onclick="showQuestion(2)">02</div>
-                <div class="qbox correct" onclick="showQuestion(3)">03</div>
-
+                {% for res in result_data %}
+                <div class="qbox {{ 'correct' if res.correct else 'wrong' }}" onclick="showQuestion({{ loop.index }})">
+                    {{ "%02d"|format(loop.index) }}
+                </div>
+                {% endfor %}
             </div>
-
         </div>
 
-
-
-        <!-- QUESTION DETAIL -->
-
+        <!-- RIGHT SIDE: QUESTION DETAIL -->
         <div class="result-right">
-
-
-            <!-- QUESTION 1 -->
-
-            <div class="question" id="q1">
-
-                <p><b>Câu 1:</b> Chủ nghĩa Mác nói chung, triết học Mác nói riêng ra đời vào những năm nào của thế kỷ
-                    XIX?</p>
-
-                <label class="option">
-                    <input type="radio" disabled>
-                    A. Những năm 30 của thế kỷ XIX.
-                </label>
-
-                <label class="option correct user-answer">
-                    <input type="radio" checked disabled>
-                    B. Những năm 40 của thế kỷ XIX.
-                </label>
-
-                <label class="option">
-                    <input type="radio" disabled>
-                    C. Những năm 50 của thế kỷ XIX.
-                </label>
-
-                <label class="option">
-                    <input type="radio" disabled>
-                    D. Những năm 20 của thế kỷ XIX.
-                </label>
-
-                <div class="answer-note correct">
-                    ✔ Bạn chọn đúng
+            {% for res in result_data %}
+            <div class="question" id="q{{ loop.index }}" style="display: none;">
+                <p><b>Câu {{ loop.index }}:</b> Nội dung câu hỏi hệ thống</p>
+                
+                <div class="answer-display">
+                    <p>Đáp án bạn chọn: <span class="{{ 'text-correct' if res.correct else 'text-wrong' }}"><b>{{ res.user_answer if res.user_answer else 'Bỏ trống' }}</b></span></p>
+                    {% if not res.correct %}
+                    <p>Đáp án đúng là: <span class="text-correct"><b>{{ res.correct_answer }}</b></span></p>
+                    {% endif %}
                 </div>
 
-            </div>
-
-
-            <!-- QUESTION 2 -->
-
-            <div class="question" id="q2">
-
-                <p><b>Câu 2:</b> Hãy chỉ ra quan niệm đầy đủ, đúng đắn về triết học</p>
-
-                <label class="option">
-                    <input type="radio" disabled>
-                    A. Hệ thống tri thức về kinh tế và chính trị.
-                </label>
-
-                <label class="option correct">
-                    <input type="radio" disabled>
-                    B. Hệ thống tri thức lý luận chung nhất về thế giới.
-                </label>
-
-                <label class="option wrong user-answer">
-                    <input type="radio" checked disabled>
-                    C. Nghệ thuật tranh luận.
-                </label>
-
-                <label class="option">
-                    <input type="radio" disabled>
-                    D. Khoa học của mọi khoa học.
-                </label>
-
-                <div class="answer-note wrong">
-                    ✘ Bạn chọn sai — Đáp án đúng: B
+                <div class="answer-note {{ 'correct' if res.correct else 'wrong' }}">
+                    {% if res.correct %}
+                    ✔ Bạn đã chọn đúng
+                    {% else %}
+                    ✘ Bạn đã chọn sai
+                    {% endif %}
                 </div>
-
             </div>
-
-
-            <!-- QUESTION 3 -->
-
-            <div class="question" id="q3">
-
-                <p><b>Câu 3:</b> Nguồn gốc của sự ra đời triết học là</p>
-
-                <label class="option">
-                    <input type="radio" disabled>
-                    A. Nguồn gốc nhận thức.
-                </label>
-
-                <label class="option">
-                    <input type="radio" disabled>
-                    B. Nguồn gốc nhận thức và tự nhiên.
-                </label>
-
-                <label class="option">
-                    <input type="radio" disabled>
-                    C. Nguồn gốc xã hội.
-                </label>
-
-                <label class="option correct user-answer">
-                    <input type="radio" checked disabled>
-                    D. Nguồn gốc nhận thức và xã hội.
-                </label>
-
-                <div class="answer-note correct">
-                    ✔ Bạn chọn đúng
-                </div>
-
-            </div>
-
-
+            {% endfor %}
         </div>
 
     </div>
 
-
-
-    <!-- AI RECOMMENDATION -->
-
+    <!-- AI RECOMMENDATION PREVIEW -->
     <div class="ai-box">
-
         <h2>AI Learning Recommendation</h2>
-
+        {% if ai_rec %}
         <p>Dựa trên kết quả bài kiểm tra, AI đưa ra các gợi ý sau:</p>
-
         <ul>
             {% for action in ai_rec.action %}
-            <li>{{ action }}</li>
+            <li><i class="fa-solid fa-lightbulb"></i> {{ action }}</li>
             {% endfor %}
         </ul>
 
         <div class="learning-path">
-
             <h3>Lộ trình học gợi ý</h3>
-
-            <ol>
-                <li>{{ ai_rec.next_step }}</li>
-                <li>Làm lại quiz mức độ phù hợp</li>
-            </ol>
-
+            <p>{{ ai_rec.next_step }}</p>
         </div>
+        {% else %}
+        <p>AI đang phân tích dữ liệu bài làm của bạn...</p>
+        {% endif %}
 
-        <button class="continue-btn" onclick="window.location.href='/home'">
-            Tiếp tục học
+        <button class="continue-btn" onclick="goToRecommend()">
+            Xem lộ trình chi tiết từ AI <i class="fa-solid fa-arrow-right"></i>
         </button>
-
     </div>
 
-
-
     <script>
+        const resultJson = '{{ result_json | safe }}';
 
         function showQuestion(num) {
+            let questions = document.querySelectorAll(".question");
+            questions.forEach(q => q.style.display = "none");
+            
+            let target = document.getElementById("q" + num);
+            if (target) target.style.display = "block";
+        }
 
-            let questions = document.querySelectorAll(".question")
-
-            questions.forEach(q => {
-                q.style.display = "none"
-            })
-
-            document.getElementById("q" + num).style.display = "block"
-
+        function goToRecommend() {
+            window.location.href = "/recommend?data=" + encodeURIComponent(resultJson);
         }
 
         window.onload = function () {
-            showQuestion(1)
+            showQuestion(1);
         }
-
     </script>
+
+    <style>
+        .text-correct { color: #28a745; }
+        .text-wrong { color: #dc3545; }
+        .fa-lightbulb { color: #ffc107; margin-right: 10px; }
+        .qbox.correct { background-color: #28a745; color: white; }
+        .qbox.wrong { background-color: #dc3545; color: white; }
+        .question-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .qbox { padding: 10px; border: 1px solid #ddd; text-align: center; cursor: pointer; border-radius: 5px; }
+    </style>
 
 </body>
 

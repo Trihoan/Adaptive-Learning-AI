@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>AI Learning Path</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/recommend.css') }}">
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js"></script>
+</head>
+
+<body>
+
+    <!-- Dữ liệu thô từ bài làm -->
+    <div id="ai-data-store" data-result='{{ resultData | tojson | safe }}' style="display: none;"></div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">Adaptive Learning AI</div>
+        <div class="user">
+            {{ user_fullname }} <i class="fa-regular fa-circle-user"></i>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="container">
+
+        <!-- TITLE -->
+        <div class="section title">
+            🎯 Lộ trình học tập cá nhân hóa
+        </div>
+
+        {% if ai_rec %}
+        <!-- AI SMART ADVICE (NEW) -->
+        <div class="section card ai-smart">
+            <h2>🤖 Đánh giá từ mô hình AI</h2>
+            <div class="status-badge">{{ ai_rec.status }}</div>
+            
+            <p><b>Lời khuyên cụ thể cho bạn:</b></p>
+            <ul>
+                {% for action in ai_rec.action %}
+                <li><i class="fa-solid fa-check-double"></i> {{ action }}</li>
+                {% endfor %}
+            </ul>
+            
+            <div class="next-step-box">
+                <b>Bước tiếp theo:</b> {{ ai_rec.next_step }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- TOPIC ANALYSIS (OLD) -->
+        <div class="section card">
+            <h2>📊 Phân tích kiến thức hổng</h2>
+            <ul id="analysis-list"></ul>
+        </div>
+
+        <!-- LEARNING PATH -->
+        <div class="section card">
+            <h2>📚 Lộ trình học đề xuất</h2>
+            <div id="learning-path"></div>
+        </div>
+
+        <!-- ACTION -->
+        <div class="section card center">
+            <h2>🚀 Bắt đầu ngay</h2>
+            <p>Hệ thống đã chuẩn bị bài học phù hợp nhất với trình độ của bạn</p>
+            <button class="start-btn" onclick="startLearning()">
+                Bắt đầu học ngay
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const dataStore = document.getElementById('ai-data-store');
+        const resultData = JSON.parse(dataStore.getAttribute('data-result') || '[]');
+
+        function analyze() {
+            let weak = {};
+            resultData.forEach(q => {
+                if (!q.correct) {
+                    weak[q.topic] = (weak[q.topic] || 0) + 1;
+                }
+            });
+            return weak;
+        }
+
+        function generateAI() {
+            let weak = analyze();
+            let analysisHTML = "";
+            let pathHTML = "";
+
+            if (Object.keys(weak).length > 0) {
+                for (let topic in weak) {
+                    let topicName = topic === "nguon_goc" ? "Nguồn gốc triết học" : 
+                                   topic === "ban_chat" ? "Bản chất triết học" : topic;
+                    
+                    analysisHTML += `<li class="weak">Bạn cần cải thiện: ${topicName}</li>`;
+                    pathHTML += `<div class="path-step">Ôn tập chương: ${topicName}</div>`;
+                }
+            } else {
+                analysisHTML = `<li class="good">Tuyệt vời! Bạn đã hoàn thành tốt bài kiểm tra 🎉</li>`;
+                pathHTML = `<div class="path-step">Tiến tới các bài học nâng cao hơn.</div>`;
+            }
+
+            document.getElementById("analysis-list").innerHTML = analysisHTML;
+            document.getElementById("learning-path").innerHTML = pathHTML;
+        }
+
+        function getWeakestTopic(weak) {
+            let max = 0;
+            let weakest = null;
+            for (let topic in weak) {
+                if (weak[topic] > max) {
+                    max = weak[topic];
+                    weakest = topic;
+                }
+            }
+            return weakest;
+        }
+
+        function startLearning() {
+            let weak = analyze();
+            let weakestTopic = getWeakestTopic(weak);
+            if (weakestTopic) {
+                window.location.href = "/quiz?topic=" + weakestTopic;
+            } else {
+                window.location.href = "/quiz?topic=default";
+            }
+        }
+
+        window.onload = generateAI;
+    </script>
+
+</body>
+
+</html>
