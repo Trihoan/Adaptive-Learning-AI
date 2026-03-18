@@ -24,11 +24,11 @@ class AuthController:
 
         # 4. Tạo User mới
         new_user = User(
-            id=student_id,           # maSV
+            maSV=student_id,         # maSV (Trùng khớp với model User mới)
             username=username, 
             password=hash_password(password), 
-            role="student"           # Mặc định là student
-            # hoTen=fullname         # Mở comment nếu Model có cột hoTen
+            role="student",          # Mặc định là student
+            hoTen=fullname           # Gán Full Name vào hoTen
         )
         self.user_repo.save_user(new_user)
         return {"status": "success", "message": "Đăng ký thành công!"}

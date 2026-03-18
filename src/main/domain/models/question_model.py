@@ -14,7 +14,7 @@ class Exam(Base):
     __tablename__ = "BaiKiemTra"
 
     id = Column("maBaiKiemTra", Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column("maSV", String(20), ForeignKey("NguoiHoc.maSV"))
+    user_id = Column("maSV", String(20), ForeignKey("nguoihoc.maSV"))
     chapter_id = Column("maChuong", Integer, ForeignKey("chuonghoc.maChuong"))
     start_time = Column("thoiGianBatDau", DateTime, default=datetime.utcnow)
     end_time = Column("thoiGianKetThuc", DateTime)

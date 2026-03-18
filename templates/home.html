@@ -5,206 +5,126 @@
     <meta charset="UTF-8">
     <title>ALAS - Home</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/AI.css') }}">
     <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
-
 </head>
 
 <body>
 
     <!-- HEADER -->
-
     <div class="header">
-
-        <div class="logo">
-            Adaptive Learning AI
-        </div>
-
+        <div class="logo">Adaptive Learning AI</div>
         <div class="user">
-            Hoang Kien
+            {{ user_fullname }}
             <i class="fa-regular fa-circle-user avatar"></i>
         </div>
-
     </div>
-
 
     <!-- SUBJECT LIST -->
-
     <div class="subjects">
-
-        <div id="triethoc" class="subject" onclick="showChapters('triethoc')">
-            Triết học Mác - Lênin
-        </div>
-
-        <div id="xahoi" class="subject" onclick="showChapters('xahoi')">
-            Chủ nghĩa xã hội khoa học
-        </div>
-
+        <div id="triethoc" class="subject" onclick="showChapters('triethoc')">Triết học Mác - Lênin</div>
+        <div id="xahoi" class="subject" onclick="showChapters('xahoi')">Chủ nghĩa xã hội khoa học</div>
     </div>
 
-
     <!-- EXERCISE LIST -->
-
     <div id="chapter-list" class="exercise"></div>
 
+    <!-- CHATBOT WIDGET -->
+    <div id="chat-container">
+        <div id="chat-header">
+            AI Assistant
+            <span onclick="toggleChat()" style="float:right; cursor:pointer;">×</span>
+        </div>
+        <div id="chat-body">
+            <div class="bot-msg">Chào bạn! Tôi là AI cố vấn học tập. Bạn cần tôi tư vấn về lộ trình học hay chương tiếp theo không?</div>
+        </div>
+        <div id="chat-footer">
+            <input type="text" id="chat-input" placeholder="Hỏi AI về lộ trình học...">
+            <button onclick="sendMessage()">Gửi</button>
+        </div>
+    </div>
+    <div id="chat-bubble" onclick="toggleChat()">
+        <i class="fa-solid fa-robot"></i>
+    </div>
 
     <script>
-
-        /* DỮ LIỆU GIẢ (SAU NÀY SẼ LẤY TỪ DATABASE) */
-
-        const courses = {
-
-            triethoc: [
-
-                {
-                    title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 1",
-                    time: "Còn lại 4h",
-                    done: 1221,
-                    total: 209,
-                    progress: 70
-                },
-
-                {
-                    title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 2",
-                    time: "Còn lại 4h",
-                    done: 599,
-                    total: 297,
-                    progress: 0
-                },
-
-                {
-                    title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 3",
-                    time: "Còn lại 4h",
-                    done: 800,
-                    total: 300,
-                    progress: 100
-                }
-
-            ],
-
-            xahoi: [
-
-                {
-                    title: "Đề trắc nghiệm CNXH khoa học số 1",
-                    time: "Còn lại 3h",
-                    done: 200,
-                    total: 100,
-                    progress: 40
-                },
-
-                {
-                    title: "Đề trắc nghiệm CNXH khoa học số 2",
-                    time: "Còn lại 3h",
-                    done: 0,
-                    total: 120,
-                    progress: 0
-                }
-
-            ]
-
+        /* LOGIC CHATBOT */
+        function toggleChat() {
+            const chat = document.getElementById("chat-container");
+            chat.style.display = chat.style.display === "flex" ? "none" : "flex";
         }
 
+        async function sendMessage() {
+            const input = document.getElementById("chat-input");
+            const body = document.getElementById("chat-body");
+            const text = input.value.trim();
+            if (!text) return;
 
-        /* HIỂN THỊ DANH SÁCH BÀI */
+            body.innerHTML += `<div class="user-msg">${text}</div>`;
+            input.value = "";
+            body.scrollTop = body.scrollHeight;
+
+            try {
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await response.json();
+                body.innerHTML += `<div class="bot-msg">${data.reply}</div>`;
+                body.scrollTop = body.scrollHeight;
+            } catch (e) {
+                body.innerHTML += `<div class="bot-msg">Lỗi kết nối server!</div>`;
+            }
+        }
+        
+        document.getElementById("chat-input").addEventListener("keypress", (e) => {
+            if(e.key === "Enter") sendMessage();
+        });
+
+        /* DỮ LIỆU GIẢ */
+        const courses = {
+            triethoc: [
+                { title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 1", time: "Còn lại 4h", done: 1221, total: 209, progress: 70 },
+                { title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 2", time: "Còn lại 4h", done: 599, total: 297, progress: 0 },
+                { title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 3", time: "Còn lại 4h", done: 800, total: 300, progress: 100 }
+            ],
+            xahoi: [
+                { title: "Đề trắc nghiệm CNXH khoa học số 1", time: "Còn lại 3h", done: 200, total: 100, progress: 40 },
+                { title: "Đề trắc nghiệm CNXH khoa học số 2", time: "Còn lại 3h", done: 0, total: 120, progress: 0 }
+            ]
+        };
 
         function showChapters(course) {
-
-            let html = ""
-
-            html += `<h3>Danh sách bài luyện tập</h3>`
-
+            let html = "<h3>Danh sách bài luyện tập</h3>";
             courses[course].forEach(ex => {
-
-                let action = ""
-
+                let action = "";
                 if (ex.progress == 0) {
-
-                    action = `
-<div class="status not-start" onclick="goQuiz()" style="cursor:pointer">
-Chưa làm
-</div>
-`
-
+                    action = `<div class="status not-start" onclick="goQuiz()" style="cursor:pointer">Chưa làm</div>`;
+                } else if (ex.progress == 100) {
+                    action = `<div class="status done">Hoàn thành</div><button class="review-btn" onclick="goQuiz()">Ôn tập lại</button>`;
+                } else {
+                    action = `<div class="progress-box">${ex.progress}%</div><button class="continue-btn" onclick="goQuiz()">Tiếp tục</button>`;
                 }
-
-                else if (ex.progress == 100) {
-
-                    action = `
-<div class="status done">Hoàn thành</div>
-<button class="review-btn" onclick="goQuiz()">Ôn tập lại</button>
-`
-
-                }
-
-                else {
-
-                    action = `
-<div class="progress-box">${ex.progress}%</div>
-<button class="continue-btn" onclick="goQuiz()">Tiếp tục</button>
-`
-
-                }
-
                 html += `
-<div class="exercise-item">
-
-<div class="exercise-info">
-
-<div class="title">
-${ex.title}
-</div>
-
-<div class="meta">
-${ex.time} &nbsp;&nbsp; ${ex.done} đã làm &nbsp;&nbsp; ${ex.total} câu hỏi
-</div>
-
-</div>
-
-<div class="exercise-action">
-
-${action}
-
-</div>
-
-</div>
-`
-
-            })
-
-
-            document.getElementById("chapter-list").innerHTML = html
-
-
-            /* HIGHLIGHT MÔN HỌC */
-
-            let subjects = document.querySelectorAll(".subject")
-
-            subjects.forEach(sub => {
-                sub.classList.remove("active")
-            })
-
-            document.getElementById(course).classList.add("active")
-
+                    <div class="exercise-item">
+                        <div class="exercise-info">
+                            <div class="title">${ex.title}</div>
+                            <div class="meta">${ex.time} &nbsp;&nbsp; ${ex.done} đã làm &nbsp;&nbsp; ${ex.total} câu hỏi</div>
+                        </div>
+                        <div class="exercise-action">${action}</div>
+                    </div>`;
+            });
+            document.getElementById("chapter-list").innerHTML = html;
+            let subjects = document.querySelectorAll(".subject");
+            subjects.forEach(sub => sub.classList.remove("active"));
+            document.getElementById(course).classList.add("active");
         }
 
-
-        /* CHUYỂN SANG TRANG QUIZ */
-
-        function goQuiz() {
-
-            window.location.href = "/quiz"
-
-        }
-
-
-        /* LOAD MẶC ĐỊNH */
-
-        window.onload = function () {
-            showChapters("triethoc")
-        }
-
+        function goQuiz() { window.location.href = "/quiz"; }
+        window.onload = function () { showChapters("triethoc"); }
     </script>
 
 </body>
-
 </html>

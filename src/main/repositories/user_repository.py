@@ -10,7 +10,7 @@ class UserRepository:
         return self.db.query(User).filter(User.username == username).first()
 
     def find_by_id(self, user_id: str): 
-        return self.db.query(User).filter(User.id == user_id).first()
+        return self.db.query(User).filter(User.maSV == user_id).first()
 
     def save_user(self, user: User):
         self.db.add(user)

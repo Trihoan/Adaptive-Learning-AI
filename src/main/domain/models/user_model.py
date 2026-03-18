@@ -6,17 +6,21 @@ from src.main.database import Base
 
 
 class User(Base):
-    __tablename__ = "NguoiHoc"
+    __tablename__ = "nguoihoc"
 
-    # id ánh xạ vào maSV (Trong SQL bạn để maSV là VARCHAR(20))
-    id = Column("maSV", String(20), primary_key=True, index=True, autoincrement=False)
+    # maSV là khóa chính
+    maSV = Column(String(20), primary_key=True, index=True, autoincrement=False)
     
     # username ánh xạ vào tenDangNhap
     username = Column("tenDangNhap", String(50), unique=True, nullable=False)
     
     # password ánh xạ vào matKhau
     password = Column("matKhau", String(255), nullable=False)
+    
+    hoTen = Column("hoTen", String(100), nullable=True)
+    email = Column("email", String(100), unique=True, nullable=True)
     role = Column(String(20), default="student")
+    ngayTao = Column("ngayTao", DateTime, default=datetime.utcnow)
 
     # dữ liệu AI
     avg_score = Column(Float, default=0.0)

@@ -9,7 +9,7 @@ class StudyResult(Base):
 
     id = Column("maKetQua", Integer, primary_key=True, index=True)
 
-    user_id = Column("maSV", String(20), ForeignKey("NguoiHoc.maSV"))
+    user_id = Column("maSV", String(20), ForeignKey("nguoihoc.maSV"))
     course_id = Column("maMonHoc", String(20), ForeignKey("MonHoc.maMonHoc"))
 
     score = Column("diemTB", Float)

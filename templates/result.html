@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <title>Result</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/result.css') }}">
     <script src="https://kit.fontawesome.com/ca2ad9c616.js"></script>
 
 </head>
@@ -22,7 +22,7 @@
         </div>
 
         <div class="user">
-            Hoang Kien
+            {{ user_fullname }}
             <i class="fa-regular fa-circle-user avatar"></i>
         </div>
 
@@ -41,11 +41,11 @@
     <div class="score-box">
 
         <div class="score">
-            Điểm: <span>7/10</span>
+            Điểm: <span>{{ score }}/{{ total }}</span>
         </div>
 
         <div class="time">
-            Thời gian: <span>10:31</span>
+            Trạng thái: <span>{{ ai_rec.status }}</span>
         </div>
 
     </div>
@@ -192,16 +192,12 @@
 
         <h2>AI Learning Recommendation</h2>
 
-        <p>Dựa trên kết quả bài kiểm tra, AI nhận thấy bạn còn yếu ở các nội dung sau:</p>
+        <p>Dựa trên kết quả bài kiểm tra, AI đưa ra các gợi ý sau:</p>
 
         <ul>
-
-            <li>Nguồn gốc của triết học</li>
-
-            <li>Bản chất của triết học</li>
-
-            <li>Lịch sử hình thành triết học Mác</li>
-
+            {% for action in ai_rec.action %}
+            <li>{{ action }}</li>
+            {% endfor %}
         </ul>
 
         <div class="learning-path">
@@ -209,18 +205,13 @@
             <h3>Lộ trình học gợi ý</h3>
 
             <ol>
-
-                <li>Ôn tập: Khái niệm và nguồn gốc triết học</li>
-
-                <li>Học lại: Nội dung cơ bản của triết học Mác</li>
-
-                <li>Làm lại quiz mức độ Intermediate</li>
-
+                <li>{{ ai_rec.next_step }}</li>
+                <li>Làm lại quiz mức độ phù hợp</li>
             </ol>
 
         </div>
 
-        <button class="continue-btn">
+        <button class="continue-btn" onclick="window.location.href='/home'">
             Tiếp tục học
         </button>
 
