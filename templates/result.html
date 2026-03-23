@@ -12,7 +12,9 @@
 
     <!-- HEADER -->
     <div class="header">
-        <div class="logo">Adaptive Learning AI</div>
+        <div class="logo">
+            <a href="{{ url_for('home_page') }}">Adaptive Learning AI</a>
+        </div>
         <div class="user">
             {{ user_fullname }} <i class="fa-regular fa-circle-user avatar"></i>
         </div>
@@ -28,7 +30,7 @@
         <div class="score">
             Điểm của bạn: <span>{{ score }}/{{ total }}</span>
         </div>
-        <div class="time">
+        <div class="evaluation">
             Đánh giá: <span>{{ ai_rec.status if ai_rec else 'Chưa có đánh giá' }}</span>
         </div>
     </div>
@@ -41,7 +43,7 @@
             <h3>Danh sách câu hỏi</h3>
             <div class="question-grid">
                 {% for res in result_data %}
-                <div class="qbox {{ 'correct' if res.correct else 'wrong' }}" onclick="showQuestion({{ loop.index }})">
+                <div class="qbox qbox-btn {{ 'correct' if res.correct else 'wrong' }}" data-target="{{ loop.index }}">
                     {{ "%02d"|format(loop.index) }}
                 </div>
                 {% endfor %}
@@ -52,7 +54,7 @@
         <div class="result-right">
             {% for res in result_data %}
             <div class="question" id="q{{ loop.index }}" style="display: none;">
-                <p><b>Câu {{ loop.index }}:</b> Nội dung câu hỏi hệ thống</p>
+                <p><b>Câu {{ loop.index }}:</b> {{ res.text }}</p>
                 
                 <div class="answer-display">
                     <p>Đáp án bạn chọn: <span class="{{ 'text-correct' if res.correct else 'text-wrong' }}"><b>{{ res.user_answer if res.user_answer else 'Bỏ trống' }}</b></span></p>
@@ -98,8 +100,15 @@
         </button>
     </div>
 
+    <!-- DỮ LIỆU RÚT GỌN CHO TRANG RECOMMEND -->
+    <script id="short-result-data" type="application/json">
+        {{ short_result | tojson | safe }}
+    </script>
+
     <script>
-        const resultJson = '{{ result_json | safe }}';
+        // Đọc dữ liệu từ thẻ script JSON (An toàn, không lỗi IDE)
+        const resultJsonRaw = document.getElementById('short-result-data').textContent;
+        const resultJson = JSON.parse(resultJsonRaw || '[]');
 
         function showQuestion(num) {
             let questions = document.querySelectorAll(".question");
@@ -109,24 +118,22 @@
             if (target) target.style.display = "block";
         }
 
+        // Lắng nghe sự kiện click cho các ô số câu hỏi
+        document.querySelectorAll('.qbox-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetNum = parseInt(this.getAttribute('data-target'));
+                showQuestion(targetNum);
+            });
+        });
+
         function goToRecommend() {
-            window.location.href = "/recommend?data=" + encodeURIComponent(resultJson);
+            window.location.href = "/recommend?data=" + encodeURIComponent(JSON.stringify(resultJson));
         }
 
         window.onload = function () {
             showQuestion(1);
         }
     </script>
-
-    <style>
-        .text-correct { color: #28a745; }
-        .text-wrong { color: #dc3545; }
-        .fa-lightbulb { color: #ffc107; margin-right: 10px; }
-        .qbox.correct { background-color: #28a745; color: white; }
-        .qbox.wrong { background-color: #dc3545; color: white; }
-        .question-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-        .qbox { padding: 10px; border: 1px solid #ddd; text-align: center; cursor: pointer; border-radius: 5px; }
-    </style>
 
 </body>
 

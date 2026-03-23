@@ -17,8 +17,21 @@ body {
     padding: 15px 30px;
 }
 
+.header .logo a {
+    color: white !important;
+    text-decoration: none !important;
+    font-weight: bold;
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+
+.header .logo a:hover {
+    color: #ffdada !important;
+    text-decoration: none !important;
+}
+
 .logo {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: bold;
 }
 

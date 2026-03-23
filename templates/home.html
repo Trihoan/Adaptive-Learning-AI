@@ -14,7 +14,9 @@
 
     <!-- HEADER -->
     <div class="header">
-        <div class="logo">Adaptive Learning AI</div>
+        <div class="logo">
+             <a href="{{ url_for('home_page') }}">Adaptive Learning AI</a>
+        </div>
         <div class="user">
             {{ user_fullname }}
             <i class="fa-regular fa-circle-user avatar"></i>
@@ -82,36 +84,49 @@
         document.getElementById("chat-input").addEventListener("keypress", (e) => {
             if(e.key === "Enter") sendMessage();
         });
+    </script>
 
-        /* DỮ LIỆU GIẢ */
+    <!-- DỮ LIỆU THỐNG KÊ TỪ DATABASE -->
+    <script id="db-stats" type="application/json">
+        {{ db_stats | tojson | safe }}
+    </script>
+
+    <script>
+        // Đọc thống kê thực tế
+        const dbStats = JSON.parse(document.getElementById('db-stats').textContent || '{}');
+
+        /* DỮ LIỆU CẤU TRÚC ĐỀ */
         const courses = {
             triethoc: [
-                { title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 1", time: "Còn lại 4h", done: 1221, total: 209, progress: 70 },
-                { title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 2", time: "Còn lại 4h", done: 599, total: 297, progress: 0 },
-                { title: "Đề trắc nghiệm an toàn bảo mật hệ thống thông tin số 3", time: "Còn lại 4h", done: 800, total: 300, progress: 100 }
+                { title: "Đề số 1: Tổng hợp Triết học", topic: "de_triet_1" },
+                { title: "Đề số 2: Nguồn gốc và bản chất", topic: "nguon_goc" },
+                { title: "Đề số 3: Phép biện chứng", topic: "ban_chat" }
             ],
             xahoi: [
-                { title: "Đề trắc nghiệm CNXH khoa học số 1", time: "Còn lại 3h", done: 200, total: 100, progress: 40 },
-                { title: "Đề trắc nghiệm CNXH khoa học số 2", time: "Còn lại 3h", done: 0, total: 120, progress: 0 }
+                { title: "Đề số 1: Tổng hợp CNXH KH", topic: "de_xahoi_1" },
+                { title: "Đề số 2: Sứ mệnh giai cấp", topic: "su_menh" },
+                { title: "Đề số 3: Thi thử tổng hợp 2 môn", topic: "de_tong_hop" }
             ]
         };
 
         function showChapters(course) {
             let html = "<h3>Danh sách bài luyện tập</h3>";
             courses[course].forEach(ex => {
+                // Lấy dữ liệu thực tế từ stats, nếu chưa làm thì để mặc định 0
+                let stat = dbStats[ex.topic] || { count: 0, time: "0 phút" };
+                
                 let action = "";
-                if (ex.progress == 0) {
-                    action = `<div class="status not-start" onclick="goQuiz()" style="cursor:pointer">Chưa làm</div>`;
-                } else if (ex.progress == 100) {
-                    action = `<div class="status done">Hoàn thành</div><button class="review-btn" onclick="goQuiz()">Ôn tập lại</button>`;
+                if (stat.count == 0) {
+                    action = `<div class="status not-start" onclick="goQuiz('${ex.topic}')" style="cursor:pointer">Chưa làm</div>`;
                 } else {
-                    action = `<div class="progress-box">${ex.progress}%</div><button class="continue-btn" onclick="goQuiz()">Tiếp tục</button>`;
+                    action = `<button class="review-btn" onclick="goQuiz('${ex.topic}')">Làm lại</button>`;
                 }
+
                 html += `
                     <div class="exercise-item">
                         <div class="exercise-info">
                             <div class="title">${ex.title}</div>
-                            <div class="meta">${ex.time} &nbsp;&nbsp; ${ex.done} đã làm &nbsp;&nbsp; ${ex.total} câu hỏi</div>
+                            <div class="meta">Tổng thời gian làm bài: ${stat.time} &nbsp;&nbsp; ${stat.count} lần nộp bài &nbsp;&nbsp; 50 câu hỏi</div>
                         </div>
                         <div class="exercise-action">${action}</div>
                     </div>`;
@@ -122,7 +137,7 @@
             document.getElementById(course).classList.add("active");
         }
 
-        function goQuiz() { window.location.href = "/quiz"; }
+        function goQuiz(topic) { window.location.href = "/quiz?topic=" + topic; }
         window.onload = function () { showChapters("triethoc"); }
     </script>
 

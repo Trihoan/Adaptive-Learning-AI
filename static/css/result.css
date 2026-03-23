@@ -10,7 +10,22 @@ body {
     padding: 15px 30px;
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
+
+.header .logo a {
+    color: white !important;
+    text-decoration: none !important;
+    font-weight: bold !important;
+    font-size: 20px !important;
+    transition: all 0.3s ease;
+}
+
+.header .logo a:hover {
+    color: #ffdada !important;
+    text-decoration: none !important;
+}
+
 
 /* TITLE */
 
@@ -94,15 +109,29 @@ body {
 
 }
 
-.qbox.correct {
-    background: #4CAF50;
-    color: white;
+.text-correct { color: #28a745; }
+.text-wrong { color: #dc3545; }
+.fa-lightbulb { color: #ffc107; margin-right: 10px; }
+
+.question-grid { 
+    display: grid; 
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 10px; 
 }
 
-.qbox.wrong {
-    background: #f44336;
-    color: white;
+.qbox { 
+    padding: 10px; 
+    border: 1px solid #ddd; 
+    text-align: center; 
+    cursor: pointer; 
+    border-radius: 5px; 
+    background: white;
 }
+
+.qbox.correct { background-color: #28a745; color: white; border-color: #28a745; }
+.qbox.wrong { background-color: #dc3545; color: white; border-color: #dc3545; }
+
+/* Các style cũ bên dưới giữ nguyên hoặc ghi đè nếu cần */
 
 
 /* RIGHT */

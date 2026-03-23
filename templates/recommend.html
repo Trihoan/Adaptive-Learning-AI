@@ -10,12 +10,16 @@
 
 <body>
 
-    <!-- Dữ liệu thô từ bài làm -->
-    <div id="ai-data-store" data-result='{{ resultData | tojson | safe }}' style="display: none;"></div>
+    <!-- DÙNG THẺ SCRIPT JSON ĐỂ CHỨA DỮ LIỆU (HẾT LỖI ĐỎ IDE 100%) -->
+    <script id="result-data" type="application/json">
+        {{ resultData | tojson | safe }}
+    </script>
 
     <!-- HEADER -->
     <div class="header">
-        <div class="logo">Adaptive Learning AI</div>
+        <div class="logo">
+            <a href="{{ url_for('home_page') }}">Adaptive Learning AI</a>
+        </div>
         <div class="user">
             {{ user_fullname }} <i class="fa-regular fa-circle-user"></i>
         </div>
@@ -30,7 +34,7 @@
         </div>
 
         {% if ai_rec %}
-        <!-- AI SMART ADVICE (NEW) -->
+        <!-- AI SMART ADVICE -->
         <div class="section card ai-smart">
             <h2>🤖 Đánh giá từ mô hình AI</h2>
             <div class="status-badge">{{ ai_rec.status }}</div>
@@ -48,7 +52,7 @@
         </div>
         {% endif %}
 
-        <!-- TOPIC ANALYSIS (OLD) -->
+        <!-- TOPIC ANALYSIS -->
         <div class="section card">
             <h2>📊 Phân tích kiến thức hổng</h2>
             <ul id="analysis-list"></ul>
@@ -72,8 +76,9 @@
     </div>
 
     <script>
-        const dataStore = document.getElementById('ai-data-store');
-        const resultData = JSON.parse(dataStore.getAttribute('data-result') || '[]');
+        // Đọc dữ liệu từ thẻ script JSON
+        const resultDataRaw = document.getElementById('result-data').textContent;
+        const resultData = JSON.parse(resultDataRaw || '[]');
 
         function analyze() {
             let weak = {};
@@ -95,8 +100,8 @@
                     let topicName = topic === "nguon_goc" ? "Nguồn gốc triết học" : 
                                    topic === "ban_chat" ? "Bản chất triết học" : topic;
                     
-                    analysisHTML += `<li class="weak">Bạn cần cải thiện: ${topicName}</li>`;
-                    pathHTML += `<div class="path-step">Ôn tập chương: ${topicName}</div>`;
+                    analysisHTML += `<li class="weak">Bạn cần cải thiện: ` + topicName + `</li>`;
+                    pathHTML += `<div class="path-step">Ôn tập chương: ` + topicName + `</div>`;
                 }
             } else {
                 analysisHTML = `<li class="good">Tuyệt vời! Bạn đã hoàn thành tốt bài kiểm tra 🎉</li>`;

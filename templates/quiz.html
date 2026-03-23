@@ -3,73 +3,90 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Quiz - {{ topic }}</title>
+    <title>Quiz - {{ display_topic }}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='css/quiz.css') }}">
     <script src="https://kit.fontawesome.com/ca2ad9c616.js"></script>
 </head>
 
 <body>
 
+    <script id="questions-data" type="application/json">
+        {{ questions | tojson | safe }}
+    </script>
+
     <div class="header">
-        <div class="logo">Adaptive Learning AI</div>
+        <div class="logo">
+            <a href="{{ url_for('home_page') }}">Adaptive Learning AI</a>
+        </div>
         <div class="user">
-            Hoang Kien <i class="fa-regular fa-circle-user avatar"></i>
+            {{ user_fullname }} <i class="fa-regular fa-circle-user avatar"></i>
         </div>
     </div>
 
     <div class="quiz-container">
         <form id="quizForm" method="POST" action="/result" style="display:flex; gap:40px; width:100%;">
+            
+            <input type="hidden" name="topic" value="{{ topic }}">
+            <input type="hidden" id="time_taken" name="time_taken" value="0">
 
-            <!-- LEFT SIDE: QUESTIONS -->
+            <!-- LEFT SIDE -->
             <div class="quiz-left">
                 <div class="quiz-title">
-                    Chủ đề: {{ topic|capitalize }}
+                    {{ display_topic }}
                 </div>
                 <div class="quiz-time">
-                    Thời gian: 10:00
+                    Thời gian làm bài: <span id="timer">00:00</span>
                 </div>
 
-                {% for q in questions %}
-                <div class="question" id="{{ q.id }}" style="display: none;">
-                    <p><b>Câu {{ loop.index }}:</b> {{ q.text }}</p>
+                {% if questions %}
+                    {% for q in questions %}
+                    <!-- Dùng data-num để JS nhận biết câu hỏi -->
+                    <div class="question question-block" data-num="{{ loop.index }}" style="display: none;">
+                        <p><b>Câu {{ loop.index }}:</b> {{ q['text'] }}</p>
 
-                    <label>
-                        <input type="radio" name="{{ q.id }}" value="A" onclick="answerQuestion({{ loop.index }})">
-                        A. {{ q.A }}
-                    </label>
+                        <label>
+                            <input type="radio" class="answer-radio" name="q{{ q['id'] }}" value="A" data-idx="{{ loop.index }}">
+                            A. {{ q['A'] }}
+                        </label>
 
-                    <label>
-                        <input type="radio" name="{{ q.id }}" value="B" onclick="answerQuestion({{ loop.index }})">
-                        B. {{ q.B }}
-                    </label>
+                        <label>
+                            <input type="radio" class="answer-radio" name="q{{ q['id'] }}" value="B" data-idx="{{ loop.index }}">
+                            B. {{ q['B'] }}
+                        </label>
 
-                    <label>
-                        <input type="radio" name="{{ q.id }}" value="C" onclick="answerQuestion({{ loop.index }})">
-                        C. {{ q.C }}
-                    </label>
+                        <label>
+                            <input type="radio" class="answer-radio" name="q{{ q['id'] }}" value="C" data-idx="{{ loop.index }}">
+                            C. {{ q['C'] }}
+                        </label>
 
-                    {% if q.D %}
-                    <label>
-                        <input type="radio" name="{{ q.id }}" value="D" onclick="answerQuestion({{ loop.index }})">
-                        D. {{ q.D }}
-                    </label>
-                    {% endif %}
-                </div>
-                {% endfor %}
+                        {% if q['D'] %}
+                        <label>
+                            <input type="radio" class="answer-radio" name="q{{ q['id'] }}" value="D" data-idx="{{ loop.index }}">
+                            D. {{ q['D'] }}
+                        </label>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>Hệ thống hiện chưa có câu hỏi cho chủ đề này.</p>
+                {% endif %}
             </div>
 
-            <!-- RIGHT SIDE: NAVIGATION -->
+            <!-- RIGHT SIDE -->
             <div class="quiz-right">
                 <h3>Danh sách câu hỏi</h3>
                 <div class="question-grid">
-                    {% for q in questions %}
-                    <div class="qbox" id="box{{ loop.index }}" onclick="showQuestion({{ loop.index }})">
-                        {{ "%02d"|format(loop.index) }}
-                    </div>
-                    {% endfor %}
+                    {% if questions %}
+                        {% for q in questions %}
+                        <!-- Dùng class qbox-btn và data-target thay vì onclick -->
+                        <div class="qbox qbox-btn" data-target="{{ loop.index }}" id="box{{ loop.index }}">
+                            {{ "%02d"|format(loop.index) }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
 
-                <button type="button" class="submit-btn" onclick="submitQuiz()">
+                <button type="button" class="submit-btn" id="btnSubmit">
                     Nộp bài
                 </button>
             </div>
@@ -78,36 +95,65 @@
     </div>
 
     <script>
-        /* HIỂN THỊ 1 CÂU HỎI */
+        // 1. ĐỌC DỮ LIỆU
+        const questionsData = document.getElementById('questions-data').textContent;
+        const questions = JSON.parse(questionsData || '[]');
+
+        // 2. ĐỒNG HỒ ĐẾM XUÔI
+        let secondsElapsed = 0;
+        const timerElement = document.getElementById('timer');
+        const timeTakenInput = document.getElementById('time_taken');
+
+        const timerInterval = setInterval(() => {
+            secondsElapsed++;
+            let minutes = Math.floor(secondsElapsed / 60);
+            let seconds = secondsElapsed % 60;
+            timerElement.innerHTML = (minutes < 10 ? '0' : '') + minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+            timeTakenInput.value = secondsElapsed;
+        }, 1000);
+
+        // 3. XỬ LÝ HIỂN THỊ CÂU HỎI
         function showQuestion(num) {
-            let questions = document.querySelectorAll(".question");
-            questions.forEach(q => {
-                q.style.display = "none";
+            const allBlocks = document.querySelectorAll(".question-block");
+            allBlocks.forEach(block => {
+                block.style.display = "none";
+                if (parseInt(block.getAttribute('data-num')) === num) {
+                    block.style.display = "block";
+                }
             });
-            
-            // Lấy câu hỏi thứ n (num bắt đầu từ 1)
-            let target = questions[num - 1];
-            if (target) {
-                target.style.display = "block";
-            }
         }
 
-        /* CHỌN ĐÁP ÁN → Ô SỐ CHUYỂN XANH */
-        function answerQuestion(num) {
-            let box = document.getElementById("box" + num);
-            box.style.background = "#4CAF50";
-            box.style.color = "white";
-        }
+        // 4. LẮNG NGHE SỰ KIỆN (THAY CHO ONCLICK)
+        
+        // Khi bấm vào ô số câu hỏi bên phải
+        document.querySelectorAll('.qbox-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetNum = parseInt(this.getAttribute('data-target'));
+                showQuestion(targetNum);
+            });
+        });
 
-        /* NỘP BÀI */
-        function submitQuiz() {
-            let confirmSubmit = confirm("Bạn có chắc muốn nộp bài?");
-            if (confirmSubmit) {
+        // Khi chọn một đáp án
+        document.querySelectorAll('.answer-radio').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const idx = this.getAttribute('data-idx');
+                const box = document.getElementById("box" + idx);
+                if (box) {
+                    box.style.background = "#4CAF50";
+                    box.style.color = "white";
+                }
+            });
+        });
+
+        // Khi bấm nút nộp bài
+        document.getElementById('btnSubmit').addEventListener('click', function() {
+            if (confirm("Bạn có chắc muốn nộp bài?")) {
+                clearInterval(timerInterval);
                 document.getElementById("quizForm").submit();
             }
-        }
+        });
 
-        /* HIỂN THỊ CÂU 1 MẶC ĐỊNH */
+        // 5. KHỞI TẠO MẶC ĐỊNH
         window.onload = function () {
             showQuestion(1);
         }

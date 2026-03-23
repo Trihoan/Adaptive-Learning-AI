@@ -13,8 +13,9 @@ class StudyResult(Base):
     course_id = Column("maMonHoc", String(20), ForeignKey("MonHoc.maMonHoc"))
 
     score = Column("diemTB", Float)
-    time_spent = Column(Float, default=0.0)
-    created_at = Column("thoiGianLam", DateTime, default=datetime.utcnow)
+    time_taken = Column("thoiGianLamBai", Float, default=0.0) # Thời gian làm lượt này (giây)
+    topic = Column("chuDe", String(50), nullable=True) # Lưu topic/chương
+    created_at = Column("thoiGianNop", DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="results")
     course = relationship("Course", back_populates="results")
