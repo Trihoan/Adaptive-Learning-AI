@@ -5,11 +5,11 @@ from src.main.database import Base
 class Chapter(Base):
     __tablename__ = "chuonghoc"
 
-    id = Column("maChuong", Integer, primary_key=True, index=True, autoincrement=True)
-    course_id = Column("maMonHoc", String(20), ForeignKey("MonHoc.maMonHoc"))
-    title = Column("tenChuong", String(255), nullable=False)
-    order = Column("stt", Integer, default=1) # order field 'stt'
+    maChuong = Column(Integer, primary_key=True, autoincrement=True)
+    maMonHoc = Column(String(20), ForeignKey("monhoc.maMonHoc"))
+    tenChuong = Column(String(255), nullable=False)
+    stt = Column(Integer, default=1)
 
-    course = relationship("Course", backref="chapters")
+    course = relationship("Course", back_populates="chapters")
     questions = relationship("Question", back_populates="chapter", cascade="all, delete-orphan")
-    quizzes = relationship("Exam", back_populates="chapter", cascade="all, delete-orphan")
+    exams = relationship("Exam", back_populates="chapter", cascade="all, delete-orphan")

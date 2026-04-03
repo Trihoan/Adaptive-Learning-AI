@@ -103,9 +103,17 @@
                 { title: "Đề số 3: Phép biện chứng", topic: "ban_chat" }
             ],
             xahoi: [
-                { title: "Đề số 1: Tổng hợp CNXH KH", topic: "de_xahoi_1" },
-                { title: "Đề số 2: Sứ mệnh giai cấp", topic: "su_menh" },
-                { title: "Đề số 3: Thi thử tổng hợp 2 môn", topic: "de_tong_hop" }
+                { title: "Đề số 1: Chương 1", topic: "Chương 1" },
+                { title: "Đề số 2: Chương 2", topic: "Chương 2" },
+                { title: "Đề số 3: Chương 3", topic: "Chương 3" },
+                { title: "Đề số 4: Chương 4", topic: "Chương 4" },
+                { title: "Đề số 5: Chương 5", topic: "Chương 5" },
+                { title: "Đề số 6: Chương 6", topic: "Chương 6" },
+                { title: "Đề số 7: Chương 7", topic: "Chương 7" },
+                { title: "Đề số 8: Ôn tập tổng hợp 1", topic: "Tổng hợp 1 " },
+                { title: "Đề số 9: Ôn tập tổng hợp 2", topic: "Tổng hợp 2" },
+                { title: "Đề số 10: Ôn tập tổng hợp 3", topic: "Tổng hợp 3" },
+                { title: "Đề số 11: Ôn tập tổng hợp 4", topic: "Tổng hợp 4" }
             ]
         };
 
@@ -115,6 +123,12 @@
                 // Lấy dữ liệu thực tế từ stats, nếu chưa làm thì để mặc định 0
                 let stat = dbStats[ex.topic] || { count: 0, time: "0 phút" };
                 
+                // Xác định số câu hỏi dựa trên topic (logic tương ứng QuizService)
+                let qCount = 10;
+                if (ex.topic.startsWith("cnx_th")) qCount = 60;
+                else if (ex.topic.startsWith("cnx_c")) qCount = 40;
+                else if (ex.topic.startsWith("de_")) qCount = 20;
+
                 let action = "";
                 if (stat.count == 0) {
                     action = `<div class="status not-start" onclick="goQuiz('${ex.topic}')" style="cursor:pointer">Chưa làm</div>`;
@@ -126,7 +140,7 @@
                     <div class="exercise-item">
                         <div class="exercise-info">
                             <div class="title">${ex.title}</div>
-                            <div class="meta">Tổng thời gian làm bài: ${stat.time} &nbsp;&nbsp; ${stat.count} lần nộp bài &nbsp;&nbsp; 50 câu hỏi</div>
+                            <div class="meta">Tổng thời gian làm bài: ${stat.time} &nbsp;&nbsp; ${stat.count} lần nộp bài &nbsp;&nbsp; ${qCount} câu hỏi</div>
                         </div>
                         <div class="exercise-action">${action}</div>
                     </div>`;

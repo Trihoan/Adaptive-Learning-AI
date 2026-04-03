@@ -18,13 +18,13 @@ class AuthService:
             return None
 
         # kiểm tra password
-        if not verify_password(password, user.password):
+        if not verify_password(password, user.matKhau):
             return None
 
         return user
 
 
-    def remove_user(self, user_id_to_delete: int, current_user: User):
+    def remove_user(self, user_id_to_delete: str, current_user: User):
         """
         user_id_to_delete: ID của người bị xóa
         current_user: User đang thực hiện hành động
@@ -35,7 +35,7 @@ class AuthService:
             return False, "Bạn không có quyền thực hiện hành động này!"
 
         # 2️⃣ ngăn admin tự xóa chính mình
-        if current_user.id == user_id_to_delete:
+        if current_user.maSV == user_id_to_delete:
             return False, "Admin không thể tự xóa chính mình!"
 
         # 3️⃣ xóa user

@@ -1,21 +1,21 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from src.main.database import Base
 
 
 class StudyResult(Base):
-    __tablename__ = "KetQuaHocTap"
+    __tablename__ = "ketquahoctap"
 
-    id = Column("maKetQua", Integer, primary_key=True, index=True)
-
-    user_id = Column("maSV", String(20), ForeignKey("nguoihoc.maSV"))
-    course_id = Column("maMonHoc", String(20), ForeignKey("MonHoc.maMonHoc"))
-
-    score = Column("diemTB", Float)
-    time_taken = Column("thoiGianLamBai", Float, default=0.0) # Thời gian làm lượt này (giây)
-    topic = Column("chuDe", String(50), nullable=True) # Lưu topic/chương
-    created_at = Column("thoiGianNop", DateTime, default=datetime.utcnow)
+    maKetQua = Column(Integer, primary_key=True, autoincrement=True)
+    maSV = Column(String(20), ForeignKey("nguoihoc.maSV", ondelete="CASCADE"))
+    maCauHoi = Column(Integer, ForeignKey("cauhoi.maCauHoi", ondelete="CASCADE"))
+    maDapAnChon = Column(Integer, ForeignKey("dapan.maDapAn"))
+    thoiGianLam = Column(DateTime, default=datetime.utcnow)
+    trangThai = Column(Boolean)
+    maBaiKiemTra = Column(Integer, ForeignKey("baikiemtra.maBaiKiemTra", ondelete="CASCADE"))
 
     user = relationship("User", back_populates="results")
-    course = relationship("Course", back_populates="results")
+    question = relationship("Question", back_populates="results")
+    chosen_answer = relationship("Answer", back_populates="results")
+    exam = relationship("Exam", back_populates="results")

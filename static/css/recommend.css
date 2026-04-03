@@ -14,7 +14,10 @@ body {
     align-items: center;
 }
 
-.header .logo a {
+.header .logo a, 
+.header .logo a:visited, 
+.header .logo a:active, 
+.header .logo a:link {
     color: white !important;
     text-decoration: none !important;
     font-weight: bold;

@@ -25,8 +25,8 @@ class AuthController:
         # 4. Tạo User mới
         new_user = User(
             maSV=student_id,         # maSV (Trùng khớp với model User mới)
-            username=username, 
-            password=hash_password(password), 
+            tenDangNhap=username, 
+            matKhau=hash_password(password), 
             role="student",          # Mặc định là student
             hoTen=fullname           # Gán Full Name vào hoTen
         )

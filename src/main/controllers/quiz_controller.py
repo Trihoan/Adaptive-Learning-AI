@@ -8,7 +8,7 @@ from typing import List
 
 class QuizController:
     def __init__(self, db: Session):
-        self.quiz_service = QuizService()
+        self.quiz_service = QuizService(db)
         self.db = db
 
     def create_exam(self, user_id: str, chapter_id: int) -> Exam:

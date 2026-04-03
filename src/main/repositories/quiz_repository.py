@@ -8,10 +8,10 @@ class QuizRepository:
 
     def get_questions_by_chapter(self, chapter_id: int) -> List[Question]:
         # Lấy câu hỏi kèm theo các đáp án (Eager loading answers)
-        return self.db.query(Question).filter(Question.chapter_id == chapter_id).all()
+        return self.db.query(Question).filter(Question.maChuong == chapter_id).all()
 
     def get_question_by_id(self, question_id: int) -> Question:
-        return self.db.query(Question).filter(Question.id == question_id).first()
+        return self.db.query(Question).filter(Question.maCauHoi == question_id).first()
 
     def save_exam_result(self, exam: Exam):
         self.db.add(exam)

@@ -7,41 +7,47 @@ from datetime import datetime
 class QuizQuestionAssociation(Base):
     __tablename__ = "chitietbaikiemtra"
 
-    exam_id = Column("maBaiKiemTra", Integer, ForeignKey("BaiKiemTra.maBaiKiemTra"), primary_key=True)
-    question_id = Column("maCauHoi", Integer, ForeignKey("CauHoi.maCauHoi"), primary_key=True)
+    maBaiKiemTra = Column(Integer, ForeignKey("baikiemtra.maBaiKiemTra"), primary_key=True)
+    maCauHoi = Column(Integer, ForeignKey("cauhoi.maCauHoi"), primary_key=True)
+    maDapAnChon = Column(Integer, ForeignKey("dapan.maDapAn"), nullable=True)
 
 class Exam(Base):
-    __tablename__ = "BaiKiemTra"
+    __tablename__ = "baikiemtra"
 
-    id = Column("maBaiKiemTra", Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column("maSV", String(20), ForeignKey("nguoihoc.maSV"))
-    chapter_id = Column("maChuong", Integer, ForeignKey("chuonghoc.maChuong"))
-    start_time = Column("thoiGianBatDau", DateTime, default=datetime.utcnow)
-    end_time = Column("thoiGianKetThuc", DateTime)
-    score = Column("diem", Float)
+    maBaiKiemTra = Column(Integer, primary_key=True, autoincrement=True)
+    maSV = Column(String(20), ForeignKey("nguoihoc.maSV", ondelete="CASCADE"))
+    maChuong = Column(Integer, ForeignKey("chuonghoc.maChuong", ondelete="CASCADE"))
+    thoiGianBatDau = Column(DateTime, default=datetime.utcnow)
+    thoiGianKetThuc = Column(DateTime)
+    diem = Column(Float)
 
-    user = relationship("User", backref="exams")
-    chapter = relationship("Chapter", back_populates="quizzes")
+    user = relationship("User", back_populates="exams")
+    chapter = relationship("Chapter", back_populates="exams")
     questions = relationship("Question", secondary="chitietbaikiemtra", back_populates="exams")
+    results = relationship("StudyResult", back_populates="exam")
 
 class Question(Base):
-    __tablename__ = "CauHoi"
+    __tablename__ = "cauhoi"
 
-    id = Column("maCauHoi", Integer, primary_key=True, index=True, autoincrement=True)
-    chapter_id = Column("maChuong", Integer, ForeignKey("chuonghoc.maChuong"))
-    content = Column("noiDung", Text, nullable=False)
-    difficulty = Column("doKho", Integer)
+    maCauHoi = Column(Integer, primary_key=True, autoincrement=True)
+    maChuong = Column(Integer, ForeignKey("chuonghoc.maChuong", ondelete="CASCADE"))
+    noiDung = Column(Text, nullable=False)
+    doKho = Column(Integer)
+    loaiCauHoi = Column(String(20), default="single")
+    giaiThich = Column(Text)
 
     chapter = relationship("Chapter", back_populates="questions")
     answers = relationship("Answer", back_populates="question", cascade="all, delete-orphan")
     exams = relationship("Exam", secondary="chitietbaikiemtra", back_populates="questions")
+    results = relationship("StudyResult", back_populates="question")
 
 class Answer(Base):
     __tablename__ = "dapan"
 
-    id = Column("maDapAn", Integer, primary_key=True, index=True, autoincrement=True)
-    question_id = Column("maCauHoi", Integer, ForeignKey("CauHoi.maCauHoi"))
-    content = Column("noiDungDapAn", Text, nullable=False)
-    is_correct = Column("laDapAnDung", Boolean, default=False)
+    maDapAn = Column(Integer, primary_key=True, autoincrement=True)
+    maCauHoi = Column(Integer, ForeignKey("cauhoi.maCauHoi"))
+    noiDungDapAn = Column(Text, nullable=False)
+    laDapAnDung = Column(Boolean, default=False)
 
     question = relationship("Question", back_populates="answers")
+    results = relationship("StudyResult", back_populates="chosen_answer")

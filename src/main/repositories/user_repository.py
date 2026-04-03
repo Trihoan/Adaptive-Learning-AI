@@ -7,7 +7,7 @@ class UserRepository:
         self.db = db
 
     def find_by_username(self, username: str):
-        return self.db.query(User).filter(User.username == username).first()
+        return self.db.query(User).filter(User.tenDangNhap == username).first()
 
     def find_by_id(self, user_id: str): 
         return self.db.query(User).filter(User.maSV == user_id).first()

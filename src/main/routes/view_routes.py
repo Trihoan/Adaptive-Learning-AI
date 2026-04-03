@@ -23,7 +23,7 @@ def get_fullname(db: Session, user_id: str):
     
     if user:
         # 1. Lấy họ tên và viết hoa chữ cái đầu mỗi từ (.title())
-        raw_name = user.hoTen if user.hoTen else user.username
+        raw_name = user.hoTen if user.hoTen else user.tenDangNhap
         formatted_name = raw_name.title()
         
         # 2. Lấy MASV và viết hoa toàn bộ (.upper())
@@ -50,18 +50,24 @@ async def home_page(request: Request, user_id: Optional[str] = Cookie(None), db:
     stats = {}
     if user_id:
         from sqlalchemy import func
-        from src.main.domain.models.study_result_model import StudyResult
+        from src.main.domain.models import Exam
         
-        # Nhóm theo topic và đếm số lần làm, cộng tổng thời gian
+        # Nhóm theo maChuong và đếm số lần làm
         results = db.query(
-            StudyResult.topic, 
-            func.count(StudyResult.id).label("count"),
-            func.sum(StudyResult.time_taken).label("total_time")
-        ).filter(StudyResult.user_id == user_id).group_by(StudyResult.topic).all()
+            Exam.maChuong, 
+            func.count(Exam.maBaiKiemTra).label("count")
+        ).filter(Exam.maSV == user_id).group_by(Exam.maChuong).all()
+        
+        # Ánh xạ ngược từ maChuong sang topic để template nhận diện được
+        rev_topic_map = {
+            1: "cnx_c1", 2: "cnx_c2", 3: "cnx_c3",
+            4: "cnx_c4", 5: "cnx_c5", 6: "cnx_c6",
+            7: "cnx_c7"
+        }
         
         for r in results:
-            minutes = round(r.total_time / 60, 1) if r.total_time else 0
-            stats[r.topic] = {"count": r.count, "time": f"{minutes} phút"}
+            topic_key = rev_topic_map.get(r.maChuong, "default")
+            stats[topic_key] = {"count": r.count, "time": "N/A"}
 
     return templates.TemplateResponse(
         "home.html", 
@@ -164,15 +170,46 @@ async def process_result(
 
     # LƯU KẾT QUẢ VÀO DATABASE
     if user_id:
-        from src.main.domain.models.study_result_model import StudyResult
-        new_result = StudyResult(
-            user_id=user_id,
-            score=score_rate,
-            time_taken=float(form_data.get("time_taken", 0)), # Lấy thời gian từ form
-            topic=topic,
-            course_id="triethoc" if topic.startswith("de_triet") or topic in ["nguon_goc", "ban_chat", "lich_su"] else "xahoi"
+        from src.main.domain.models import Exam, StudyResult
+        from datetime import datetime, timedelta
+
+        # 1. Lưu Exam (baikiemtra)
+        # Lấy chapter_id từ câu hỏi đầu tiên (giả định cùng chapter trong 1 đề)
+        first_q_key = list(answers.keys())[0] if answers else None
+        chapter_id = answers[first_q_key]["chapter_id"] if first_q_key else 1
+        
+        time_taken_seconds = float(form_data.get("time_taken", 0))
+        end_time = datetime.utcnow()
+        start_time = end_time - timedelta(seconds=time_taken_seconds)
+
+        new_exam = Exam(
+            maSV=user_id,
+            maChuong=chapter_id,
+            thoiGianBatDau=start_time,
+            thoiGianKetThuc=end_time,
+            diem=score_rate
         )
-        db.add(new_result)
+        db.add(new_exam)
+        db.flush() # Để lấy maBaiKiemTra vừa tạo
+
+        # 2. Lưu từng câu hỏi vào StudyResult (ketquahoctap)
+        for key, info in answers.items():
+            user_val = form_data.get(key)
+            q_id = int(key.replace("q", ""))
+            
+            # Lấy maDapAnChon từ ans_map
+            chosen_ans_id = info["ans_map"].get(user_val)
+
+            new_sr = StudyResult(
+                maSV=user_id,
+                maCauHoi=q_id,
+                maDapAnChon=chosen_ans_id,
+                thoiGianLam=end_time,
+                trangThai=(user_val == info["correct"]),
+                maBaiKiemTra=new_exam.maBaiKiemTra
+            )
+            db.add(new_sr)
+        
         db.commit()
     
     # Dữ liệu rút gọn để truyền qua URL (tránh lỗi 414 Request-URI Too Large)
