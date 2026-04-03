@@ -88,19 +88,19 @@ class QuizService:
         )
 
     def get_questions_by_topic(self, topic: str) -> List[Dict[str, Any]]:
-        # Ánh xạ Topic/Đề sang danh sách các Chapter ID
+        # Ánh xạ Topic/Đề sang danh sách các Chapter ID (Khớp với home.html mới)
         topic_map = {
-            # Triết học (Giữ nguyên hoặc tùy chỉnh sau)
+            # Triết học
             "de_triet_1": [1, 2, 3], "nguon_goc": [1], "ban_chat": [2], "lich_su": [3],
             
-            # CNXH KH: 7 Chương riêng biệt
-            "cnx_c1": [1], "cnx_c2": [2], "cnx_c3": [3], "cnx_c4": [4], "cnx_c5": [5], "cnx_c6": [6], "cnx_c7": [7],
+            # CNXH KH: Khớp tên tiếng Việt từ home.html
+            "Chương 1": [1], "Chương 2": [2], "Chương 3": [3], "Chương 4": [4], 
+            "Chương 5": [5], "Chương 6": [6], "Chương 7": [7],
             
-            # CNXH KH: 4 Đề tổng hợp 7 chương
-            "cnx_th1": [1, 2, 3, 4, 5, 6, 7],
-            "cnx_th2": [1, 2, 3, 4, 5, 6, 7],
-            "cnx_th3": [1, 2, 3, 4, 5, 6, 7],
-            "cnx_th4": [1, 2, 3, 4, 5, 6, 7]
+            "Tổng hợp 1 ": [1, 2, 3, 4, 5, 6, 7],
+            "Tổng hợp 2": [1, 2, 3, 4, 5, 6, 7],
+            "Tổng hợp 3": [1, 2, 3, 4, 5, 6, 7],
+            "Tổng hợp 4": [1, 2, 3, 4, 5, 6, 7]
         }
         
         chapter_ids = topic_map.get(topic, [1])
@@ -131,13 +131,11 @@ class QuizService:
             import random
             random.shuffle(all_questions)
             
-            # 60 câu cho đề tổng hợp (cnx_th), 40 câu cho đề chương (cnx_c)
-            if topic.startswith("cnx_th"):
+            # Giới hạn câu hỏi dựa trên tên topic mới
+            if "Tổng hợp" in topic:
                 limit = 60
-            elif topic.startswith("cnx_c"):
+            elif "Chương" in topic:
                 limit = 40
-            elif len(chapter_ids) > 1:
-                limit = 20
             else:
                 limit = 10
                 

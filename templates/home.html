@@ -110,7 +110,7 @@
                 { title: "Đề số 5: Chương 5", topic: "Chương 5" },
                 { title: "Đề số 6: Chương 6", topic: "Chương 6" },
                 { title: "Đề số 7: Chương 7", topic: "Chương 7" },
-                { title: "Đề số 8: Ôn tập tổng hợp 1", topic: "Tổng hợp 1 " },
+                { title: "Đề số 8: Ôn tập tổng hợp 1", topic: "Tổng hợp 1" },
                 { title: "Đề số 9: Ôn tập tổng hợp 2", topic: "Tổng hợp 2" },
                 { title: "Đề số 10: Ôn tập tổng hợp 3", topic: "Tổng hợp 3" },
                 { title: "Đề số 11: Ôn tập tổng hợp 4", topic: "Tổng hợp 4" }
@@ -125,8 +125,8 @@
                 
                 // Xác định số câu hỏi dựa trên topic (logic tương ứng QuizService)
                 let qCount = 10;
-                if (ex.topic.startsWith("cnx_th")) qCount = 60;
-                else if (ex.topic.startsWith("cnx_c")) qCount = 40;
+                if (ex.topic.startsWith("Tổng hợp")) qCount = 60;
+                else if (ex.topic.startsWith("Chương")) qCount = 40;
                 else if (ex.topic.startsWith("de_")) qCount = 20;
 
                 let action = "";
