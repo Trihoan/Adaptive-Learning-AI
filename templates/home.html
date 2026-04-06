@@ -125,9 +125,10 @@
                 
                 // Xác định số câu hỏi dựa trên topic (logic tương ứng QuizService)
                 let qCount = 10;
-                if (ex.topic.startsWith("Tổng hợp")) qCount = 60;
-                else if (ex.topic.startsWith("Chương")) qCount = 40;
+                if (ex.topic.includes("Tổng hợp")) qCount = 60;
+                else if (ex.topic.includes("Chương")) qCount = 40;
                 else if (ex.topic.startsWith("de_")) qCount = 20;
+
 
                 let action = "";
                 if (stat.count == 0) {
