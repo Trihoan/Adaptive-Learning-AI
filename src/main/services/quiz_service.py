@@ -181,3 +181,32 @@ class QuizService:
                 "ans_map": ans_map # Thêm map label -> maDapAn
             }
         return answers_dict
+
+    def get_correct_answers_by_ids(self, q_ids: List[int]) -> Dict[str, Any]:
+        answers_dict = {}
+        chapter_names = {
+            1: "Vật chất và ý thức", 2: "Phép biện chứng", 3: "Chủ nghĩa duy vật lịch sử",
+            4: "Nhập môn CNXH KH", 5: "Sứ mệnh giai cấp công nhân", 6: "Thời kỳ quá độ",
+            7: "Dân chủ XHCN và Nhà nước XHCN"
+        }
+
+        for q_id in q_ids:
+            q = self.repo.get_question_by_id(q_id)
+            if not q:
+                continue
+            
+            ans_list = q.answers
+            ans_map = {}
+            labels = ["A", "B", "C", "D"]
+            for idx, ans in enumerate(ans_list):
+                if idx < len(labels):
+                    ans_map[labels[idx]] = ans.maDapAn
+
+            answers_dict[f"q{q.maCauHoi}"] = {
+                "correct": self._get_correct_label(ans_list),
+                "text": q.noiDung,
+                "topic": chapter_names.get(q.maChuong, "Kiến thức chung"),
+                "chapter_id": q.maChuong,
+                "ans_map": ans_map
+            }
+        return answers_dict

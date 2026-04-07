@@ -24,36 +24,37 @@ class AIService:
 
             # 3. Lấy thông tin về tài liệu từ những học viên tương đồng (KNN logic)
             # Giả lập: Lấy ngẫu nhiên các tài liệu mà nhóm tương đồng đã học
-            suggested_topics = ["Cấu trúc dữ liệu nâng cao", "Lập trình hướng đối tượng", "Cơ sở dữ liệu SQL"]
-            peer_suggestion = suggested_topics[np.random.randint(0, len(suggested_topics))]
+            suggested_docs = ["Giáo trình Triết học Mác-Lênin (NXB Chính trị quốc gia)", "Bài giảng CNXH Khoa học", "Tài liệu ôn tập trắc nghiệm lý luận chính trị"]
+            peer_suggestion = suggested_docs[np.random.randint(0, len(suggested_docs))]
 
             # 4. Tổng hợp lời khuyên
             recommendations = {
                 "Giỏi": {
-                    "status": f"Xuất sắc! Dự đoán: {is_passed}.",
+                    "status": f"Xuất sắc! Dự đoán kết quả kỳ thi: {is_passed}.",
                     "action": [
-                        "Thử sức với các bài tập nâng cao",
-                        f"Học viên giống bạn cũng đang học: {peer_suggestion}"
+                        "Thử sức với các đề thi tổng hợp 60 câu",
+                        f"Học viên cùng trình độ thường tham khảo: {peer_suggestion}"
                     ],
-                    "next_step": "Chương nâng cao: Tối ưu hóa thuật toán"
+                    "next_step": "Chương tiếp theo hoặc Ôn tập tổng hợp"
                 },
                 "Khá": {
-                    "status": f"Tốt! Dự đoán: {is_passed}.",
+                    "status": f"Tốt! Dự đoán kết quả kỳ thi: {is_passed}.",
                     "action": [
-                        "Ôn tập lại các lỗi sai trong bài Quiz",
+                        "Xem lại các câu hỏi bị sai trong phần lịch sử triết học",
                         f"Gợi ý tài liệu bổ sung: {peer_suggestion}"
                     ],
-                    "next_step": "Chương 3: Cấu trúc dữ liệu"
+                    "next_step": "Ôn tập lại các khái niệm cơ bản của Chương 2"
                 },
                 "Cần hỗ trợ": {
-                    "status": f"Cố lên! Dự đoán: {is_passed}.",
+                    "status": f"Cần cố gắng hơn! Dự đoán kết quả kỳ thi: {is_passed}.",
                     "action": [
-                        "Xem lại các video bài giảng căn bản",
-                        "Tham gia buổi học phụ đạo trực tuyến"
+                        "Đọc kỹ giáo trình và ghi chú các từ khóa quan trọng",
+                        "Xem lại các video bài giảng tóm tắt chương"
                     ],
-                    "next_step": "Học lại Chương 1: Nhập môn"
+                    "next_step": "Học lại kiến thức nền tảng của Chương 1"
                 }
             }
+
 
             return recommendations.get(group, recommendations["Khá"])
 

@@ -33,6 +33,7 @@
             
             <input type="hidden" name="topic" value="{{ topic }}">
             <input type="hidden" id="time_taken" name="time_taken" value="0">
+            <input type="hidden" name="question_ids" value="{{ questions | map(attribute='id') | list | join(',') }}">
 
             <!-- LEFT SIDE -->
             <div class="quiz-left">

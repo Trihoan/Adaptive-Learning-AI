@@ -49,25 +49,36 @@ async def home_page(request: Request, user_id: Optional[str] = Cookie(None), db:
     # Lấy thống kê thực tế từ DB
     stats = {}
     if user_id:
-        from sqlalchemy import func
+        from sqlalchemy import func, text
         from src.main.domain.models import Exam
         
-        # Nhóm theo maChuong và đếm số lần làm
+        # Nhóm theo maChuong, đếm số lần làm và tính tổng số giây (dùng TIMESTAMPDIFF cho MySQL)
         results = db.query(
             Exam.maChuong, 
-            func.count(Exam.maBaiKiemTra).label("count")
+            func.count(Exam.maBaiKiemTra).label("count"),
+            func.sum(func.timestampdiff(text('SECOND'), Exam.thoiGianBatDau, Exam.thoiGianKetThuc)).label("total_seconds")
         ).filter(Exam.maSV == user_id).group_by(Exam.maChuong).all()
         
         # Ánh xạ ngược từ maChuong sang topic để template nhận diện được
         rev_topic_map = {
-            1: "cnx_c1", 2: "cnx_c2", 3: "cnx_c3",
-            4: "cnx_c4", 5: "cnx_c5", 6: "cnx_c6",
-            7: "cnx_c7"
+            1: "Chương 1", 2: "Chương 2", 3: "Chương 3",
+            4: "Chương 4", 5: "Chương 5", 6: "Chương 6",
+            7: "Chương 7",
+            101: "de_triet_1", 102: "nguon_goc", 103: "ban_chat",
+            201: "Tổng hợp 1 ", 202: "Tổng hợp 2", 203: "Tổng hợp 3", 204: "Tổng hợp 4"
         }
         
+        def format_time(seconds):
+            if not seconds: return "0 phút"
+            minutes = round(seconds / 60, 1)
+            return f"{minutes} phút"
+
         for r in results:
             topic_key = rev_topic_map.get(r.maChuong, "default")
-            stats[topic_key] = {"count": r.count, "time": "N/A"}
+            stats[topic_key] = {
+                "count": r.count, 
+                "time": format_time(r.total_seconds)
+            }
 
     return templates.TemplateResponse(
         "home.html", 
@@ -147,7 +158,14 @@ async def process_result(
     user_obj = user_repo.find_by_id(user_id) if user_id else None
     study_hours = user_obj.total_time if user_obj and user_obj.total_time else 2.5
 
-    answers = quiz_service.get_correct_answers_for_topic(topic)
+    # Lấy danh sách ID câu hỏi từ form để giữ đúng thứ tự và đúng bộ câu hỏi đã làm
+    question_ids_str = form_data.get("question_ids")
+    if question_ids_str:
+        q_ids = [int(x) for x in question_ids_str.split(",")]
+        answers = quiz_service.get_correct_answers_by_ids(q_ids)
+    else:
+        answers = quiz_service.get_correct_answers_for_topic(topic)
+
     score = 0
     result_data = []
     
@@ -176,9 +194,19 @@ async def process_result(
         from datetime import datetime, timedelta
 
         # 1. Lưu Exam (baikiemtra)
-        # Lấy chapter_id từ câu hỏi đầu tiên (giả định cùng chapter trong 1 đề)
-        first_q_key = list(answers.keys())[0] if answers else None
-        chapter_id = answers[first_q_key]["chapter_id"] if first_q_key else 1
+        # Lấy chapter_id dựa trên topic thực tế
+        topic_to_id = {
+            "de_triet_1": 101, "nguon_goc": 102, "ban_chat": 103,
+            "Chương 1": 1, "Chương 2": 2, "Chương 3": 3, "Chương 4": 4, 
+            "Chương 5": 5, "Chương 6": 6, "Chương 7": 7,
+            "Tổng hợp 1 ": 201, "Tổng hợp 2": 202, "Tổng hợp 3": 203, "Tổng hợp 4": 204
+        }
+        chapter_id = topic_to_id.get(topic)
+        
+        # Fallback nếu không map được
+        if not chapter_id:
+            first_q_key = list(answers.keys())[0] if answers else None
+            chapter_id = answers[first_q_key]["chapter_id"] if first_q_key else 1
         
         time_taken_seconds = float(form_data.get("time_taken", 0))
         end_time = datetime.utcnow()
