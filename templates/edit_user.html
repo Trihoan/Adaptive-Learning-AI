@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Chỉnh sửa sinh viên</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/admin.css') }}">
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+             <a href="{{ url_for('home_page') }}">Adaptive Learning AI</a>
+        </div>
+        <div class="user">
+            {{ user_fullname }}
+            <i class="fa-regular fa-circle-user avatar"></i>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <h2>Chỉnh sửa người dùng</h2>
+        <form action="/admin/users/update" method="POST">
+            <div class="form-group">
+                <label>Mã sinh viên (Không thể sửa)</label>
+                <input type="text" value="{{ target_user.maSV }}" readonly style="background:#eee">
+                <input type="hidden" name="maSV" value="{{ target_user.maSV }}">
+            </div>
+            <div class="form-group">
+                <label>Họ và tên</label>
+                <input type="text" name="hoTen" value="{{ target_user.hoTen }}" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ target_user.email }}" required>
+            </div>
+            <div class="form-group">
+                <label>Vai trò</label>
+                <select name="role">
+                    <option value="student" {{ 'selected' if target_user.role == 'student' }}>Sinh viên</option>
+                    <option value="admin" {{ 'selected' if target_user.role == 'admin' }}>Quản trị viên</option>
+                </select>
+            </div>
+            <button type="submit" class="submit-btn">Lưu thay đổi</button>
+            <a href="/admin/users" class="cancel-btn">Hủy bỏ</a>
+        </form>
+    </div>
+
+    <script>
+        /* LOGIC MENU NGƯỜI DÙNG */
+        document.querySelector(".user").addEventListener("click", function(e) {
+            e.stopPropagation();
+            const menu = document.getElementById("user-menu");
+            if(menu) menu.style.display = menu.style.display === "block" ? "none" : "block";
+        });
+        
+        function logout() {
+            document.cookie = "user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>

@@ -74,7 +74,8 @@ async def home_page(request: Request, user_id: Optional[str] = Cookie(None), db:
         {
             "request": request, 
             "user_fullname": fullname,
-            "db_stats": stats # Truyền thống kê vào template
+            "db_stats": stats, # Truyền thống kê vào template
+            "is_admin": check_admin(db, user_id)
         }
     )
 
@@ -101,7 +102,7 @@ async def course_page(request: Request, course_name: str, user_id: Optional[str]
 
     return templates.TemplateResponse(
         "course.html", 
-        {"request": request, "course_title": course_title, "chapters": chapters, "user_fullname": fullname}
+        {"request": request, "course_title": course_title, "chapters": chapters, "user_fullname": fullname, "is_admin": check_admin(db, user_id)}
     )
 
 @router.get("/quiz", response_class=HTMLResponse)
@@ -125,7 +126,8 @@ async def quiz_page(request: Request, topic: Optional[str] = "default", user_id:
             "questions": questions, 
             "topic": topic, 
             "display_topic": display_topic,
-            "user_fullname": fullname
+            "user_fullname": fullname,
+            "is_admin": check_admin(db, user_id)
         }
     )
 
@@ -258,4 +260,71 @@ async def recommend_page(request: Request, data: Optional[str] = None, user_id: 
     return templates.TemplateResponse(
         "recommend.html", 
         {"request": request, "resultData": result_data, "ai_rec": ai_recommendation, "user_fullname": fullname}
+    )
+
+@router.get("/profile", response_class=HTMLResponse)
+async def profile_page(request: Request, user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
+    fullname = get_fullname(db, user_id)
+    user_repo = UserRepository(db)
+    user = user_repo.find_by_id(user_id)
+    
+    if not user:
+        return RedirectResponse(url="/")
+        
+    return templates.TemplateResponse(
+        "profile.html", 
+        {
+            "request": request, 
+            "user": user, 
+            "user_fullname": fullname
+        }
+    )
+
+# --- ADMIN VIEWS ---
+
+def check_admin(db: Session, user_id: str):
+    if not user_id:
+        user_repo = UserRepository(db)
+        return False
+    user_repo = UserRepository(db)
+    user = user_repo.find_by_id(user_id)
+    return user and user.role == "admin"
+
+@router.get("/admin/users", response_class=HTMLResponse)
+async def admin_users_page(request: Request, user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
+    if not check_admin(db, user_id):
+        return RedirectResponse(url="/home")
+    
+    fullname = get_fullname(db, user_id)
+    user_repo = UserRepository(db)
+    all_users = user_repo.get_all_users()
+    
+    return templates.TemplateResponse(
+        "admin_users.html", 
+        {
+            "request": request, 
+            "users": all_users, 
+            "user_fullname": fullname
+        }
+    )
+
+@router.get("/admin/users/edit/{target_id}", response_class=HTMLResponse)
+async def admin_edit_user_page(target_id: str, request: Request, user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
+    if not check_admin(db, user_id):
+        return RedirectResponse(url="/home")
+    
+    fullname = get_fullname(db, user_id)
+    user_repo = UserRepository(db)
+    target_user = user_repo.find_by_id(target_id)
+    
+    if not target_user:
+        return RedirectResponse(url="/admin/users")
+        
+    return templates.TemplateResponse(
+        "edit_user.html", 
+        {
+            "request": request, 
+            "target_user": target_user, 
+            "user_fullname": fullname
+        }
     )

@@ -18,6 +18,10 @@
         <div class="user">
             {{ user_fullname }}
             <i class="fa-regular fa-circle-user avatar"></i>
+            <div id="user-menu" class="user-menu">
+                <div class="menu-item" onclick="goProfile()">Thông tin cá nhân</div>
+                <div class="menu-item logout" onclick="logout()">Đăng xuất</div>
+            </div>
         </div>
     </div>
 
@@ -133,6 +137,27 @@
 
         window.onload = function () {
             showQuestion(1);
+        }
+
+        /* LOGIC MENU NGƯỜI DÙNG */
+        document.querySelector(".user").addEventListener("click", function(e) {
+            e.stopPropagation();
+            const menu = document.getElementById("user-menu");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        });
+
+        document.addEventListener("click", function() {
+            const menu = document.getElementById("user-menu");
+            if (menu) menu.style.display = "none";
+        });
+
+        function goProfile() {
+            window.location.href = "/profile";
+        }
+
+        function logout() {
+            document.cookie = "user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "/";
         }
     </script>
 
