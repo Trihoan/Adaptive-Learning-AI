@@ -130,7 +130,7 @@ DATABASE_URL=mysql+pymysql://username:password@localhost:3306/alas_db
 ### 5.Khởi động Server FastAPI
 Chạy lệnh sau để khởi động server ở chế độ phát triển (tự động reload khi có thay đổi code):
 ```text
-uvicorn src.server:app --reload
+gunicorn -w 2 -k uvicorn.workers.UvicornWorker src.server:app --bind 0.0.0.0:$PORT
 ```
 ### 6.Trải nghiệm API (Swagger UI)
 FastAPI tự động tạo tài liệu API tương tác cực kỳ trực quan. Mở trình duyệt và truy cập:
