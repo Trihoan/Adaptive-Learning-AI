@@ -105,3 +105,61 @@ th {
     color: #666;
     text-decoration: none;
 }
+
+
+/* AI ANALYTICS SECTION */
+.ai-analytics {
+    margin-top: 40px;
+    border-top: 2px solid #f0f0f0;
+    padding-top: 20px;
+}
+
+.ai-card {
+    display: flex;
+    gap: 20px;
+    background: #fdfdfd;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+}
+
+.ai-chart {
+    flex: 1;
+    text-align: center;
+}
+
+.ai-chart img {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.ai-info {
+    flex: 1;
+}
+
+.metric-box {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.metric-item {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #4caf50;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.metric-item b {
+    font-size: 20px;
+    color: #2e7d32;
+    display: block;
+}
+
+
+/* STATUS COLORS */
+.text-success { color: #2e7d32 !important; }
+.text-danger { color: #f44336 !important; }

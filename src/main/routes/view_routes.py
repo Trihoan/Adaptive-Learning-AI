@@ -64,8 +64,9 @@ async def home_page(request: Request, user_id: Optional[str] = Cookie(None), db:
             1: "Chương 1", 2: "Chương 2", 3: "Chương 3",
             4: "Chương 4", 5: "Chương 5", 6: "Chương 6",
             7: "Chương 7",
-            101: "de_triet_1", 102: "nguon_goc", 103: "ban_chat",
-            201: "Tổng hợp 1 ", 202: "Tổng hợp 2", 203: "Tổng hợp 3", 204: "Tổng hợp 4"
+            8: "Chương 1", 9: "Chương 2", 10: "Chương 3", # TTHCM
+            201: "Tổng hợp CNXHKH 1", 202: "Tổng hợp TTHCM",
+            203: "Tổng hợp CNXHKH 2", 204: "Tổng hợp CNXHKH 3"
         }
         
         def format_time(seconds):
@@ -96,14 +97,14 @@ async def course_page(request: Request, course_name: str, user_id: Optional[str]
     chapters = []
     course_title = "Unknown"
 
-    if course_name == "triethoc":
+    if course_name == "TTHCM":
         chapters = [
-            "Chương 1: Vật chất và ý thức",
-            "Chương 2: Phép biện chứng",
-            "Chương 3: Chủ nghĩa duy vật lịch sử"
+            "Chương 1: Cơ sở hình thành và phát triển TTHCM",
+            "Chương 2: TTHCM về độc lập dân tộc và CNXH",
+            "Chương 3: TTHCM về Đảng Cộng sản và Nhà nước"
         ]
-        course_title = "Triết học Mác - Lênin"
-    elif course_name == "xahoi":
+        course_title = "Tư tưởng Hồ Chí Minh"
+    elif course_name == "CNXHKH":
         chapters = [
             "Chương 1: Nhập môn CNXH KH",
             "Chương 2: Sứ mệnh lịch sử của giai cấp công nhân",
@@ -123,9 +124,9 @@ async def quiz_page(request: Request, topic: Optional[str] = "default", user_id:
     questions = quiz_service.get_questions_by_topic(topic)
     
     topic_map = {
-        "nguon_goc": "Nguồn gốc Triết học",
-        "ban_chat": "Bản chất Triết học",
-        "lich_su": "Lịch sử Triết học",
+        "Chương 1": "Chương 1",
+        "Chương 2": "Chương 2",
+        "Chương 3": "Chương 3",
         "default": "Ôn tập tổng hợp"
     }
     display_topic = topic_map.get(topic, topic.replace("_", " ").capitalize())
@@ -196,11 +197,22 @@ async def process_result(
         # 1. Lưu Exam (baikiemtra)
         # Lấy chapter_id dựa trên topic thực tế
         topic_to_id = {
-            "de_triet_1": 101, "nguon_goc": 102, "ban_chat": 103,
+            # CNXHKH
             "Chương 1": 1, "Chương 2": 2, "Chương 3": 3, "Chương 4": 4, 
             "Chương 5": 5, "Chương 6": 6, "Chương 7": 7,
-            "Tổng hợp 1 ": 201, "Tổng hợp 2": 202, "Tổng hợp 3": 203, "Tổng hợp 4": 204
+            "Tổng hợp CNXHKH 1": 201, "Tổng hợp CNXHKH 2": 203, "Tổng hợp CNXHKH 3": 204,
+            # TTHCM (giả sử frontend gửi prefix hoặc tên riêng, hiện tại home.html dùng chung "Chương 1")
+            # Ta cần sửa logic ở QuizService hoặc frontend để phân biệt. 
+            # Hiện tại nếu là topic từ TTHCM, ta tạm map theo ID đã biết:
+            "TTHCM_Chương 1": 8, "TTHCM_Chương 2": 9, "TTHCM_Chương 3": 10,
+            "Tổng hợp TTHCM": 202
         }
+        
+        # Nếu topic thuộc CNXHKH (có thể phân biệt qua logic khác, ở đây tạm map cứng hoặc dựa vào context)
+        # Ở frontend home.html, ta đang dùng "Chương 1" chung cho cả 2 môn. 
+        # Để chính xác hơn, ta nên gửi kèm Course ID từ frontend. 
+        # Tạm thời nếu là Chương 1-3 thì map vào TTHCM (8,9,10) như yêu cầu mới nhất.
+        
         chapter_id = topic_to_id.get(topic)
         
         # Fallback nếu không map được
@@ -326,13 +338,50 @@ async def admin_users_page(request: Request, user_id: Optional[str] = Cookie(Non
     fullname = get_fullname(db, user_id)
     user_repo = UserRepository(db)
     all_users = user_repo.get_all_users()
+
+    # TỰ ĐỘNG CẬP NHẬT BIỂU ĐỒ AI KHI VÀO TRANG ADMIN
+    ai_chart_file = "ai_clusters.png" # File mặc định
+    try:
+        from src.main.ai.ai_trainer import train_and_evaluate
+        # Vẽ biểu đồ riêng cho người đang xem
+        ai_chart_file = train_and_evaluate(user_id) 
+    except Exception as e:
+        print(f"Lỗi tự động cập nhật AI: {e}")
+
+    # Đọc chỉ số AI thật từ file
+    ai_metrics = {
+        "accuracy": 0, 
+        "precision": 0, 
+        "clusters": 0, 
+        "status": "Chưa có dữ liệu",
+        "last_train": "Chưa xác định",
+        "class_name": "text-danger",
+        "chart_file": ai_chart_file # Thêm tên file vào metrics
+    }
+    try:
+        import os
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        file_path = os.path.join(base_dir, 'models', 'ai_metrics.json')
+        
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            ai_metrics.update(data)
+            # Trả về tên Class thay vì mã màu
+            if ai_metrics["accuracy"] > 70:
+                ai_metrics["class_name"] = "text-success"
+            else:
+                ai_metrics["class_name"] = "text-danger"
+    except Exception as e:
+        print(f"Lỗi đọc file AI metrics: {e}")
+        pass
     
     return templates.TemplateResponse(
         "admin_users.html", 
         {
             "request": request, 
             "users": all_users, 
-            "user_fullname": fullname
+            "user_fullname": fullname,
+            "ai_metrics": ai_metrics # Truyền vào template
         }
     )
 

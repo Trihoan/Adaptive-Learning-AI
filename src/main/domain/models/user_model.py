@@ -41,7 +41,8 @@ class UserSkill(Base):
     __tablename__ = "user_skill"
 
     maSV = Column(String(20), ForeignKey("nguoihoc.maSV", ondelete="CASCADE"), primary_key=True)
-    maMonHoc = Column(String(20), ForeignKey("monhoc.maMonHoc", ondelete="CASCADE"), primary_key=True)
+    monhoc_id = Column(Integer, ForeignKey("monhoc.id", ondelete="CASCADE"), primary_key=True)
+    maMonHoc = Column(String(20))
     skill_level = Column(Float, default=0.0)
 
     user = relationship("User", back_populates="skills")

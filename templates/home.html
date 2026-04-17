@@ -32,8 +32,8 @@
 
     <!-- SUBJECT LIST -->
     <div class="subjects">
-        <div id="triethoc" class="subject" onclick="showChapters('triethoc')">Triết học Mác - Lênin</div>
-        <div id="xahoi" class="subject" onclick="showChapters('xahoi')">Chủ nghĩa xã hội khoa học</div>
+        <div id="TTHCM" class="subject" onclick="showChapters('TTHCM')">Tư tưởng Hồ Chí Minh</div>
+        <div id="CNXHKH" class="subject" onclick="showChapters('CNXHKH')">Chủ nghĩa xã hội khoa học</div>
     </div>
 
     <!-- EXERCISE LIST -->
@@ -127,23 +127,23 @@
 
         /* DỮ LIỆU CẤU TRÚC ĐỀ */
         const courses = {
-            triethoc: [
-                { title: "Đề số 1: Tổng hợp Triết học", topic: "de_triet_1" },
-                { title: "Đề số 2: Nguồn gốc và bản chất", topic: "nguon_goc" },
-                { title: "Đề số 3: Phép biện chứng", topic: "ban_chat" }
+            TTHCM: [
+                { title: "Đề số 1: Cơ sở hình thành TTHCM", topic: "Chương 1" },
+                { title: "Đề số 2: Độc lập dân tộc và CNXH", topic: "Chương 2" },
+                { title: "Đề số 3: Đảng CS và Nhà nước", topic: "Chương 3" },
+                { title: "Đề số 4: Ôn tập tổng hợp TTHCM", topic: "Tổng hợp TTHCM" }
             ],
-            xahoi: [
-                { title: "Đề số 1: Chương 1", topic: "Chương 1" },
-                { title: "Đề số 2: Chương 2", topic: "Chương 2" },
-                { title: "Đề số 3: Chương 3", topic: "Chương 3" },
-                { title: "Đề số 4: Chương 4", topic: "Chương 4" },
-                { title: "Đề số 5: Chương 5", topic: "Chương 5" },
-                { title: "Đề số 6: Chương 6", topic: "Chương 6" },
-                { title: "Đề số 7: Chương 7", topic: "Chương 7" },
-                { title: "Đề số 8: Ôn tập tổng hợp 1", topic: "Tổng hợp 1" },
-                { title: "Đề số 9: Ôn tập tổng hợp 2", topic: "Tổng hợp 2" },
-                { title: "Đề số 10: Ôn tập tổng hợp 3", topic: "Tổng hợp 3" },
-                { title: "Đề số 11: Ôn tập tổng hợp 4", topic: "Tổng hợp 4" }
+            CNXHKH: [
+                { title: "Đề số 1: Nhập môn CNXHKH", topic: "Chương 1" },
+                { title: "Đề số 2: Sứ mệnh lịch sử GCCN", topic: "Chương 2" },
+                { title: "Đề số 3: CNXH và thời kỳ quá độ", topic: "Chương 3" },
+                { title: "Đề số 4: Dân chủ XHCN và nhà nước", topic: "Chương 4" },
+                { title: "Đề số 5: Cơ cấu XH - giai cấp", topic: "Chương 5" },
+                { title: "Đề số 6: Vấn đề dân tộc và tôn giáo", topic: "Chương 6" },
+                { title: "Đề số 7: Vấn đề gia đình", topic: "Chương 7" },
+                { title: "Đề số 8: Tổng hợp CNXHKH (Lần 1)", topic: "Tổng hợp CNXHKH 1" },
+                { title: "Đề số 9: Tổng hợp CNXHKH (Lần 2)", topic: "Tổng hợp CNXHKH 2" },
+                { title: "Đề số 10: Tổng hợp CNXHKH (Lần 3)", topic: "Tổng hợp CNXHKH 3" }
             ]
         };
 
@@ -183,7 +183,7 @@
         }
 
         function goQuiz(topic) { window.location.href = "/quiz?topic=" + topic; }
-        window.onload = function () { showChapters("triethoc"); }
+        window.onload = function () { showChapters("TTHCM"); }
     </script>
 
 </body>

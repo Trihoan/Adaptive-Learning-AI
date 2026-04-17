@@ -33,19 +33,29 @@ async def chat_with_ai(
     user_repo = UserRepository(db)
     user = user_repo.find_by_id(user_id) if user_id else None
 
-    # 2. Logic trả lời đơn giản (có thể mở rộng sau này)
-    if "học gì" in user_message or "chương nào" in user_message or "lộ trình" in user_message:
-        # Gọi AI Service để lấy lời khuyên thực tế
-        # Nếu chưa có điểm (user mới), giả lập điểm trung bình
+    # 2. Logic trả lời nâng cao
+    if any(k in user_message for k in ["học gì", "chương nào", "lộ trình", "tư vấn", "giúp"]):
+        # Kiểm tra xem user đã làm bài nào chưa
+        from src.main.domain.models import Exam
+        exam_count = db.query(Exam).filter(Exam.maSV == user_id).count() if user_id else 0
+
+        if exam_count == 0:
+            # Gọi AI Service với tham số mặc định cho người mới
+            rec = ai_service.get_recommendation(None, None, 0, 0)
+            return {"reply": rec['friendly_msg']}
+
+        # Lấy điểm thực tế để AI phân tích
         math = user.avg_score if user and user.avg_score > 0 else 5.0
         prog = user.avg_score if user and user.avg_score > 0 else 5.0
         hours = user.total_time if user and user.total_time > 0 else 5.0
 
         rec = ai_service.get_recommendation(math, prog, hours, 0.7)
-
-        response = f"Chào bạn! Dựa trên phân tích từ AI, trạng thái của bạn là: **{rec['status']}**. "
-        response += f"Tôi khuyên bạn nên tập trung vào: **{rec['next_step']}**. "
-        response += "Ngoài ra, bạn nên: " + ", ".join(rec['action']) + "."
+        
+       
+        response = f"{rec['friendly_msg']}\n\n"
+        response += f"📌 **Trạng thái hiện tại:** {rec['status']}\n"
+        response += f"🎯 **Lời khuyên:** {rec['next_step']}\n"
+        response += f"✅ **Hành động ngay:** " + " & ".join(rec['action'])
 
         return {"reply": response}
 

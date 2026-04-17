@@ -22,6 +22,7 @@ def import_cnx_kh_data():
         chapter = db.query(Chapter).filter(Chapter.tenChuong == chapter_name).first()
         if not chapter:
             chapter = Chapter(
+                monhoc_id=course.id,
                 maMonHoc=course_id,
                 tenChuong=chapter_name,
                 stt=1

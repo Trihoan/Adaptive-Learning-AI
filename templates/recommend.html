@@ -101,8 +101,9 @@
 
             if (Object.keys(weak).length > 0) {
                 for (let topic in weak) {
-                    let topicName = topic === "nguon_goc" ? "Nguồn gốc triết học" : 
-                                   topic === "ban_chat" ? "Bản chất triết học" : topic;
+                    let topicName = topic === "Chương 1" ? "Cơ sở hình thành TTHCM" : 
+                                   topic === "Chương 2" ? "Độc lập dân tộc & CNXH" : 
+                                   topic === "Chương 3" ? "Đảng CS & Nhà nước" : topic;
                     
                     analysisHTML += `<li class="weak">Bạn cần cải thiện: ` + topicName + `</li>`;
                     pathHTML += `<div class="path-step">Ôn tập chương: ` + topicName + `</div>`;

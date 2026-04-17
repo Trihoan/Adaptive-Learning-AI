@@ -61,6 +61,45 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <!-- AI ANALYTICS SECTION -->
+        <div class="ai-analytics">
+            <h3>🤖 Hệ thống Phân tích & Dự báo AI</h3>
+            <div class="ai-card">
+                <div class="ai-chart">
+                    <img src="{{ url_for('static', path='img/' + ai_metrics.chart_file) }}?v={{ ai_metrics.last_train }}" alt="AI Clusters Chart">
+                    <p><i>Biểu đồ năng lực cá nhân hóa (Ngôi sao đỏ là vị trí của {{ user_fullname.split(' - ')[0] }})</i></p>
+                </div>
+                <div class="ai-info">
+                    <h4>Đánh giá hiệu năng mô hình</h4>
+                    <p>Hệ thống AI sử dụng thuật toán Decision Tree và K-Means để phân loại và đưa ra gợi ý lộ trình học tập cá nhân hóa.</p>
+                    
+                    <div class="metric-box">
+                        <div class="metric-item">
+                            <span>Độ chính xác (Accuracy)</span>
+                            <b>{{ ai_metrics.accuracy }}%</b>
+                        </div>
+                        <div class="metric-item" style="border-left-color: #2196f3;">
+                            <span>Số nhóm phân loại</span>
+                            <b>{{ ai_metrics.clusters }} Nhóm</b>
+                        </div>
+                        <div class="metric-item" style="border-left-color: #ff9800;">
+                            <span>Độ tin cậy (Precision)</span>
+                            <b>{{ ai_metrics.precision }}</b>
+                        </div>
+                        <div class="metric-item" style="border-left-color: #9c27b0;">
+                            <span>Trạng thái mô hình</span>
+                            <b class="{{ ai_metrics.class_name }}">{{ ai_metrics.status }}</b>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px; font-size: 14px; color: #666;">
+                        <p><i class="fa-solid fa-clock-rotate-left"></i> Lần huấn luyện cuối: {{ ai_metrics.last_train }}</p>
+                        <p><i class="fa-solid fa-circle-info"></i> Dữ liệu được tính toán tự động từ hành vi thực tế của người dùng.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>

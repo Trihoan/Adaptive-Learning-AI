@@ -6,7 +6,8 @@ class Chapter(Base):
     __tablename__ = "chuonghoc"
 
     maChuong = Column(Integer, primary_key=True, autoincrement=True)
-    maMonHoc = Column(String(20), ForeignKey("monhoc.maMonHoc"))
+    monhoc_id = Column(Integer, ForeignKey("monhoc.id"))
+    maMonHoc = Column(String(20))
     tenChuong = Column(String(255), nullable=False)
     stt = Column(Integer, default=1)
 

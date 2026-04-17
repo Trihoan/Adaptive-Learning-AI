@@ -4,7 +4,8 @@ from src.main.database import Base
 class Course(Base):
     __tablename__ = "monhoc"
 
-    maMonHoc = Column(String(20), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    maMonHoc = Column(String(20), unique=True)
     tenMonHoc = Column(String(100), nullable=False)
     moTa = Column(Text)
 
@@ -29,7 +30,8 @@ class ChiTietLoTrinh(Base):
     __tablename__ = "chitietlotrinh"
 
     maLoTrinh = Column(Integer, ForeignKey("lotrinh.maLoTrinh", ondelete="CASCADE"), primary_key=True)
-    maMonHoc = Column(String(20), ForeignKey("monhoc.maMonHoc", ondelete="CASCADE"), primary_key=True)
+    monhoc_id = Column(Integer, ForeignKey("monhoc.id", ondelete="CASCADE"), primary_key=True)
+    maMonHoc = Column(String(20))
     thuTuHoc = Column(Integer)
     dkHoanThanh = Column(Float, default=7.0)
 
