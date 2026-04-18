@@ -17,7 +17,7 @@ def import_tthcm_data():
             db.add(course)
             db.flush()
 
-        # 2. Lấy danh sách chương đã có (theo yêu cầu người dùng đã làm 3 chương)
+        # 2. Lấy danh sách chương đã có 
         chapters = db.query(Chapter).filter(Chapter.maMonHoc == course_id).order_by(Chapter.stt).all()
         
         if len(chapters) < 3:

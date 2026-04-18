@@ -15,7 +15,7 @@ Dự án này được xây dựng nhằm giải quyết vấn đề "một giá
 - **Dự đoán kết quả học tập:** Áp dụng **Decision Tree** hoặc **KNN** để dự báo khả năng hoàn thành khóa học của sinh viên.
 - **Lộ trình cá nhân hóa:** Tự động điều chỉnh độ khó của bài tập và gợi ý tài liệu bổ trợ.
 - **Dashboard trực quan:** Theo dõi tiến độ học tập thông qua biểu đồ sinh động.
-- **RESTful API mạnh mẽ: Cung cấp các endpoint tốc độ cao để giao tiếp với Frontend.
+- **RESTful API mạnh mẽ:** Cung cấp các endpoint tốc độ cao để giao tiếp với Frontend.
 ---
 
 ### 📊 Mô hình AI sử dụng
@@ -26,65 +26,38 @@ Hệ thống sử dụng các mô hình học máy cơ bản nhưng hiệu quả
 - Decision Tree: Quyết định bước tiếp theo trong lộ trình dựa trên điểm số hiện tại.
 
 - KNN: Tìm kiếm các học viên có hành vi tương tự để đưa ra gợi ý cộng tác.
+
 ## 🏗️ Cấu trúc thư mục
 ```text
 Adaptive-Learning-AI/
-     ├── data/                       # Thư mục chứa dữ liệu huấn luyện
-     │   └── students_data.csv       # File CSV chứa 500 mẫu dữ liệu sinh viên
-     ├── models/                     # Thư mục lưu trữ các mô hình AI (.pkl)
-     │   ├── kmeans_model.pkl        # Mô hình phân cụm (Giỏi/Khá/TB)
-     │   ├── dtree_model.pkl         # Mô hình cây quyết định (Dự đoán Đạt/Trượt)
-     │   └── scaler.pkl              # Bộ chuẩn hóa dữ liệu đầu vào
-     ├── src/
-     │   ├── main/
-     │   │   ├── ai/                 
-     │   │   │   ├── __init__.py
-     │   │   │   └── ai_engine.py    # Chứa logic 3 mô hình K-Means, D-Tree, KNN
-     │   │   ├── config/
-     │   │   │   └── settings.py     # Cấu hình Database & Secret Key
-     │   │   ├── controllers/
-     │   │   │   └── auth_controller.py # Xử lý Đăng ký/Đăng nhập (đã sửa maSV)
-     │   │   ├── domain/
-     │   │   │   ├── models/         # Các Model SQLAlchemy (đã sửa khóa ngoại)
-     │   │   │   │   ├── user_model.py
-     │   │   │   │   ├── course_model.py
-     │   │   │   │   ├── chapter_model.py
-     │   │   │   │   └── study_result_model.py
-     │   │   │   └── schemas/        # Pydantic Schemas cho API
-     │   │   ├── repositories/
-     │   │   │   └── user_repository.py # Truy vấn DB người dùng 
-     │   │   ├── routes/
-     │   │   │   ├── auth_routes.py  # Route Auth 
-     │   │   │   ├── system_routes.py 
-     │   │   │   └── view_routes.py 
-     │   │   ├── services/
-     │   │   │   ├── ai_service.py   
-     │   │   │   ├── auth_service.py # Logic xác thực bcrypt mới
-     │   │   │   └── security_service.py 
-     │   │   └── database.py         # Kết nối SQLAlchemy
-     │   ├── test/                   # Thư mục dành riêng cho kiểm thử
-     │   │   ├── ai_engine.py        
-     │   │   ├── seed_user.py        
-     │   │   ├── fix_tester.py       # Script sửa lỗi hash mật khẩu
-     │   │   └── test_db.py          # Kiểm tra kết nối MySQL
-     │   ├── app.py                  # File Flask cũ (chỉ dùng tham khảo)
-     │   └── server.py               # [ENTRY POINT] File khởi chạy FastAPI
-     ├── static/
-     │   ├── css/
-     │   │   ├── style.css           # CSS chung
-     │   │   ├── home.css            # CSS cho trang chủ
-     │   │   ├── result.css          # CSS cho trang kết quả
-     │   │   └── AI.css              # [MỚI] CSS riêng cho Chatbot Robot
-     │   └── img/                    # Chứa hình ảnh logo, minh họa
-     ├── templates/                  # Giao diện HTML (đã sửa url_for path)
-     │   ├── home.html               
-     │   ├── login.html
-     │   ├── register.html           
-     │   ├── result.html             
-     │   ├── quiz.html
-     │   └── course.html
-     ├── requirements.txt            # Danh sách thư viện (cần có bcrypt, scikit-learn)
+├── data/                       # Dữ liệu huấn luyện
+│   └── students_data.csv       # File CSV mẫu dữ liệu sinh viên
+├── models/                     # Các mô hình AI đã huấn luyện (.pkl)
+│   ├── kmeans_model.pkl        # Phân cụm năng lực
+│   ├── dtree_model.pkl         # Dự đoán kết quả
+│   ├── scaler.pkl              # Chuẩn hóa dữ liệu
+│   └── ai_metrics.json         # Chỉ số đánh giá mô hình
+├── src/                        # Mã nguồn chính
+│   ├── server.py               # [ENTRY POINT] Khởi chạy FastAPI
+│   ├── app.py                  # Flask App (Tham khảo)
+│   └── main/                   
+│       ├── database.py         # Kết nối cơ sở dữ liệu
+│       ├── ai/                 # Logic xử lý AI (ai_engine, ai_trainer)
+│       ├── config/             # Cấu hình hệ thống (settings)
+│       ├── controllers/        # Điều hướng logic nghiệp vụ
+│       ├── domain/             # SQLAlchemy Models & Pydantic Schemas
+│       ├── repositories/       # Thao tác trực tiếp với Database
+│       ├── routes/             # Định nghĩa các Endpoint API
+│       └── services/           # Xử lý logic trung gian
+├── static/                     # Tài nguyên tĩnh (CSS, JS, Images)
+│   ├── css/                    # Các file stylesheet
+│   └── img/                    # Hình ảnh, logo
+├── templates/                  # Giao diện HTML (Jinja2)
+├── index.html                  # File điều hướng cho GitHub Pages
+├── requirements.txt            # Danh sách thư viện phụ thuộc
+└── Procfile                    # Cấu hình triển khai trên Render
 ```
+
 ## 🛠️ Công nghệ sử dụng
 Ngôn ngữ: Python 3.x
 
@@ -116,8 +89,8 @@ venv\Scripts\activate
 # Kích hoạt môi trường (macOS/Linux)
 source venv/bin/activate
 ```
-### 3. Cài đặt các thư viện cần thiết 
-Dự án sử dụng các thư viện AI và Web FrameWork: 
+### 3. Cài đặt các thư viện cần thiết
+Dự án sử dụng các thư viện AI và Web FrameWork:
 ```text
 pip install -r requirements.txt
 ```
@@ -138,3 +111,6 @@ FastAPI tự động tạo tài liệu API tương tác cực kỳ trực quan. 
 Tài liệu Swagger UI: http://127.0.0.1:8000/docs
 
 Tài liệu ReDoc: http://127.0.0.1:8000/redoc
+
+### 7. Link Demo (GitHub Pages)
+Truy cập bản demo trực tuyến tại: [https://trihoan.github.io/Adaptive-Learning-AI/](https://trihoan.github.io/Adaptive-Learning-AI/)
