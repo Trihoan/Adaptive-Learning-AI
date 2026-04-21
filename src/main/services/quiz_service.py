@@ -90,17 +90,23 @@ class QuizService:
     def get_questions_by_topic(self, topic: str) -> List[Dict[str, Any]]:
         # Ánh xạ Topic/Đề sang danh sách các Chapter ID (Khớp với home.html mới)
         topic_map = {
-            # Triết học
-            "de_triet_1": [1, 2, 3], "nguon_goc": [1], "ban_chat": [2], "lich_su": [3],
-            
             # CNXH KH: Khớp tên tiếng Việt từ home.html
             "Chương 1": [1], "Chương 2": [2], "Chương 3": [3], "Chương 4": [4], 
             "Chương 5": [5], "Chương 6": [6], "Chương 7": [7],
             
-            "Tổng hợp 1 ": [1, 2, 3, 4, 5, 6, 7],
+            "Tổng hợp 1": [1, 2, 3, 4, 5, 6, 7],
             "Tổng hợp 2": [1, 2, 3, 4, 5, 6, 7],
             "Tổng hợp 3": [1, 2, 3, 4, 5, 6, 7],
-            "Tổng hợp 4": [1, 2, 3, 4, 5, 6, 7]
+            "Tổng hợp 4": [1, 2, 3, 4, 5, 6, 7],
+
+            # TTHCM: Đã chỉnh STT 1-5 ứng với maChuong 8-12
+            "TTHCM_Chương 1": [8], "TTHCM_Chương 2": [9], "TTHCM_Chương 3": [10],
+            "TTHCM_Chương 4": [11], "TTHCM_Chương 5": [12],
+            
+            "Tổng hợp TTHCM 1": [8, 9, 10, 11, 12],
+            "Tổng hợp TTHCM 2": [8, 9, 10, 11, 12],
+            "Tổng hợp TTHCM 3": [8, 9, 10, 11, 12],
+            "Tổng hợp TTHCM 4": [8, 9, 10, 11, 12]
         }
         
         chapter_ids = topic_map.get(topic, [1])
@@ -125,19 +131,17 @@ class QuizService:
                         all_questions.append(q_data)
             
             if not all_questions:
-                return [{ "id": "sample", "text": "Đang cập nhật câu hỏi...", "A": "A", "correct": "A", "chapter_id": 1 }]
+                return [{ "id": "sample", "text": "Đang cập nhật câu hỏi cho chương này...", "A": "Đang cập nhật", "correct": "A", "chapter_id": chapter_ids[0] }]
 
             # Trộn câu hỏi
             import random
             random.shuffle(all_questions)
             
-            # Giới hạn câu hỏi dựa trên tên topic mới
+            # Giới hạn câu hỏi
             if "Tổng hợp" in topic:
                 limit = 60
-            elif "Chương" in topic:
-                limit = 40
             else:
-                limit = 10
+                limit = 40
                 
             return all_questions[:limit] 
 
@@ -158,13 +162,19 @@ class QuizService:
         
         # Ánh xạ ngược từ chapter_id sang tên chương để AI gợi ý
         chapter_names = {
-            1: "Vật chất và ý thức", 2: "Phép biện chứng", 3: "Chủ nghĩa duy vật lịch sử",
-            4: "Nhập môn CNXH KH", 5: "Sứ mệnh giai cấp công nhân", 6: "Thời kỳ quá độ",
-            7: "Dân chủ XHCN và Nhà nước XHCN"
+            # CNXHKH
+            1: "Nhập môn CNXHKH", 2: "Sứ mệnh giai cấp công nhân", 3: "Thời kỳ quá độ",
+            4: "Dân chủ XHCN và Nhà nước", 5: "Cơ cấu xã hội - giai cấp", 
+            6: "Dân tộc và tôn giáo", 7: "Vấn đề gia đình",
+            # TTHCM
+            8: "Cơ sở hình thành TTHCM", 9: "Độc lập dân tộc và CNXH",
+            10: "Đảng Cộng sản và Nhà nước", 11: "Đại đoàn kết dân tộc",
+            12: "Văn hóa, đạo đức, con người"
         }
 
         # Cần map nhãn A, B, C, D sang ID đáp án thực tế để lưu DB
         for q in questions:
+            if q["id"] == "sample": continue
             # Lấy lại câu hỏi từ DB để có danh sách đáp án gốc (vì q trong questions là dict)
             db_q = self.repo.get_question_by_id(int(q["id"]))
             ans_map = {}
@@ -185,9 +195,12 @@ class QuizService:
     def get_correct_answers_by_ids(self, q_ids: List[int]) -> Dict[str, Any]:
         answers_dict = {}
         chapter_names = {
-            1: "Vật chất và ý thức", 2: "Phép biện chứng", 3: "Chủ nghĩa duy vật lịch sử",
-            4: "Nhập môn CNXH KH", 5: "Sứ mệnh giai cấp công nhân", 6: "Thời kỳ quá độ",
-            7: "Dân chủ XHCN và Nhà nước XHCN"
+            1: "Nhập môn CNXHKH", 2: "Sứ mệnh giai cấp công nhân", 3: "Thời kỳ quá độ",
+            4: "Dân chủ XHCN và Nhà nước", 5: "Cơ cấu xã hội - giai cấp", 
+            6: "Dân tộc và tôn giáo", 7: "Vấn đề gia đình",
+            8: "Cơ sở hình thành TTHCM", 9: "Độc lập dân tộc và CNXH",
+            10: "Đảng Cộng sản và Nhà nước", 11: "Đại đoàn kết dân tộc",
+            12: "Văn hóa, đạo đức, con người"
         }
 
         for q_id in q_ids:

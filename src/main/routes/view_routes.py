@@ -61,12 +61,17 @@ async def home_page(request: Request, user_id: Optional[str] = Cookie(None), db:
         
         # Ánh xạ ngược từ maChuong sang topic để template nhận diện được
         rev_topic_map = {
+            # CNXHKH
             1: "Chương 1", 2: "Chương 2", 3: "Chương 3",
-            4: "Chương 4", 5: "Chương 5", 6: "Chương 6",
-            7: "Chương 7",
-            8: "Chương 1", 9: "Chương 2", 10: "Chương 3", # TTHCM
-            201: "Tổng hợp CNXHKH 1", 202: "Tổng hợp TTHCM",
-            203: "Tổng hợp CNXHKH 2", 204: "Tổng hợp CNXHKH 3"
+            4: "Chương 4", 5: "Chương 5", 6: "Chương 6", 7: "Chương 7",
+            
+            # TTHCM
+            8: "TTHCM_Chương 1", 9: "TTHCM_Chương 2", 10: "TTHCM_Chương 3",
+            11: "TTHCM_Chương 4", 12: "TTHCM_Chương 5",
+
+            # Tổng hợp
+            201: "Tổng hợp 1", 202: "Tổng hợp TTHCM 1",
+            203: "Tổng hợp 2", 204: "Tổng hợp 3"
         }
         
         def format_time(seconds):
@@ -99,16 +104,22 @@ async def course_page(request: Request, course_name: str, user_id: Optional[str]
 
     if course_name == "TTHCM":
         chapters = [
-            "Chương 1: Cơ sở hình thành và phát triển TTHCM",
-            "Chương 2: TTHCM về độc lập dân tộc và CNXH",
-            "Chương 3: TTHCM về Đảng Cộng sản và Nhà nước"
+            "Chương 1: Cơ sở hình thành và phát triển Tư tưởng Hồ Chí Minh",
+            "Chương 2: Tư tưởng Hồ Chí Minh về độc lập dân tộc và Chủ nghĩa xã hội",
+            "Chương 3: Tư tưởng Hồ Chí Minh về Đảng Cộng sản và Nhà nước",
+            "Chương 4: Tư tưởng Hồ Chí Minh về đại đoàn kết dân tộc và đoàn kết quốc tế",
+            "Chương 5: Tư tưởng Hồ Chí Minh về văn hóa, đạo đức, con người"
         ]
         course_title = "Tư tưởng Hồ Chí Minh"
     elif course_name == "CNXHKH":
         chapters = [
-            "Chương 1: Nhập môn CNXH KH",
+            "Chương 1: Nhập môn Chủ nghĩa xã hội khoa học",
             "Chương 2: Sứ mệnh lịch sử của giai cấp công nhân",
-            "Chương 3: Chủ nghĩa xã hội và thời kỳ quá độ"
+            "Chương 3: Chủ nghĩa xã hội và thời kỳ quá độ",
+            "Chương 4: Dân chủ xã hội chủ nghĩa và nhà nước",
+            "Chương 5: Cơ cấu xã hội - giai cấp và liên minh",
+            "Chương 6: Vấn đề dân tộc và tôn giáo",
+            "Chương 7: Vấn đề gia đình trong thời kỳ quá độ"
         ]
         course_title = "Chủ nghĩa xã hội khoa học"
 
@@ -200,12 +211,12 @@ async def process_result(
             # CNXHKH
             "Chương 1": 1, "Chương 2": 2, "Chương 3": 3, "Chương 4": 4, 
             "Chương 5": 5, "Chương 6": 6, "Chương 7": 7,
-            "Tổng hợp CNXHKH 1": 201, "Tổng hợp CNXHKH 2": 203, "Tổng hợp CNXHKH 3": 204,
-            # TTHCM (giả sử frontend gửi prefix hoặc tên riêng, hiện tại home.html dùng chung "Chương 1")
-            # Ta cần sửa logic ở QuizService hoặc frontend để phân biệt. 
-            # Hiện tại nếu là topic từ TTHCM, ta tạm map theo ID đã biết:
+            "Tổng hợp 1": 201, "Tổng hợp 2": 203, "Tổng hợp 3": 204,
+            
+            # TTHCM
             "TTHCM_Chương 1": 8, "TTHCM_Chương 2": 9, "TTHCM_Chương 3": 10,
-            "Tổng hợp TTHCM": 202
+            "TTHCM_Chương 4": 11, "TTHCM_Chương 5": 12,
+            "Tổng hợp TTHCM 1": 202, "Tổng hợp TTHCM 2": 205, "Tổng hợp TTHCM 3": 206, "Tổng hợp TTHCM 4": 207
         }
         
         # Nếu topic thuộc CNXHKH (có thể phân biệt qua logic khác, ở đây tạm map cứng hoặc dựa vào context)
