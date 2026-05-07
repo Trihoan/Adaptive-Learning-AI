@@ -1,25 +1,28 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 from src.main.config.settings import Config
 
-# 1️ Tạo engine kết nối database
+
+connect_args = {}
+if "tidbcloud.com" in Config.SQLALCHEMY_DATABASE_URI:
+    connect_args["ssl"] = {"fake_flag_to_enable_tls": True}
+
+
 engine = create_engine(
     Config.SQLALCHEMY_DATABASE_URI,
-    pool_pre_ping=True
+    pool_pre_ping=True,
+    connect_args=connect_args
 )
 
-# 2️ Session để thao tác DB
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
 
-# 3️ Base class cho các models
 Base = declarative_base()
 
 
-# 4️ Dependency dùng cho FastAPI
 def get_db():
     db = SessionLocal()
     try:

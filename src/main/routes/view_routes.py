@@ -7,6 +7,7 @@ from src.main.repositories.user_repository import UserRepository
 from src.main.services.ai_service import AIService
 from src.main.services.quiz_service import QuizService
 from typing import Optional
+from urllib.parse import quote
 import json
 
 router = APIRouter(tags=["Views"])
@@ -129,10 +130,26 @@ async def course_page(request: Request, course_name: str, user_id: Optional[str]
     )
 
 @router.get("/quiz", response_class=HTMLResponse)
-async def quiz_page(request: Request, topic: Optional[str] = "default", user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
+async def quiz_page(
+    request: Request,
+    topic: Optional[str] = "default",
+    qids: Optional[str] = None,
+    user_id: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
     fullname = get_fullname(db, user_id)
     quiz_service = QuizService(db)
-    questions = quiz_service.get_questions_by_topic(topic)
+    questions = []
+
+    if qids:
+        try:
+            question_ids = [int(q_id) for q_id in qids.split(",") if q_id.strip().isdigit()]
+            questions = quiz_service.get_questions_by_ids(question_ids)
+        except Exception:
+            questions = []
+
+    if not questions:
+        questions = quiz_service.get_questions_by_topic(topic)
     
     topic_map = {
         "Chương 1": "Chương 1",
@@ -314,7 +331,12 @@ async def recommend_page(request: Request, data: Optional[str] = None, user_id: 
     )
 
 @router.get("/profile", response_class=HTMLResponse)
-async def profile_page(request: Request, user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
+async def profile_page(
+    request: Request,
+    user_id: Optional[str] = Cookie(None),
+    saved: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
     fullname = get_fullname(db, user_id)
     user_repo = UserRepository(db)
     user = user_repo.find_by_id(user_id)
@@ -327,9 +349,60 @@ async def profile_page(request: Request, user_id: Optional[str] = Cookie(None), 
         {
             "request": request, 
             "user": user, 
-            "user_fullname": fullname
+            "user_fullname": fullname,
+            "saved": saved,
+            "is_admin": check_admin(db, user_id)
         }
     )
+
+@router.get("/profile/edit", response_class=HTMLResponse)
+async def edit_profile_page(
+    request: Request,
+    user_id: Optional[str] = Cookie(None),
+    error: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    fullname = get_fullname(db, user_id)
+    user_repo = UserRepository(db)
+    user = user_repo.find_by_id(user_id)
+
+    if not user:
+        return RedirectResponse(url="/")
+
+    return templates.TemplateResponse(
+        "edit_profile.html",
+        {
+            "request": request,
+            "user": user,
+            "user_fullname": fullname,
+            "error": error,
+            "is_admin": check_admin(db, user_id)
+        }
+    )
+
+@router.post("/profile/update")
+async def update_profile_email(
+    email: str = Form(...),
+    user_id: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    user_repo = UserRepository(db)
+    user = user_repo.find_by_id(user_id)
+
+    if not user:
+        return RedirectResponse(url="/", status_code=303)
+
+    email = email.strip().lower()
+    if not email:
+        return RedirectResponse(url="/profile/edit?error=" + quote("Email không được để trống"), status_code=303)
+
+    existing = user_repo.find_by_email(email)
+    if existing and existing.maSV != user.maSV:
+        return RedirectResponse(url="/profile/edit?error=" + quote("Email này đã được tài khoản khác sử dụng"), status_code=303)
+
+    user.email = email
+    db.commit()
+    return RedirectResponse(url="/profile?saved=1", status_code=303)
 
 # --- ADMIN VIEWS ---
 

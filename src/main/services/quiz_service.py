@@ -223,3 +223,25 @@ class QuizService:
                 "ans_map": ans_map
             }
         return answers_dict
+
+    def get_questions_by_ids(self, q_ids: List[int]) -> List[Dict[str, Any]]:
+        questions = []
+
+        for q_id in q_ids:
+            q = self.repo.get_question_by_id(q_id)
+            if not q:
+                continue
+
+            ans_list = q.answers
+            questions.append({
+                "id": str(q.maCauHoi),
+                "text": q.noiDung,
+                "chapter_id": q.maChuong,
+                "A": ans_list[0].noiDungDapAn if len(ans_list) > 0 else "N/A",
+                "B": ans_list[1].noiDungDapAn if len(ans_list) > 1 else "N/A",
+                "C": ans_list[2].noiDungDapAn if len(ans_list) > 2 else "N/A",
+                "D": ans_list[3].noiDungDapAn if len(ans_list) > 3 else "N/A",
+                "correct": self._get_correct_label(ans_list)
+            })
+
+        return questions

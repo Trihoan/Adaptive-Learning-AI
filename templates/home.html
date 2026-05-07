@@ -32,8 +32,14 @@
 
     <!-- SUBJECT LIST -->
     <div class="subjects">
-        <div id="TTHCM" class="subject" onclick="showChapters('TTHCM')">Tư tưởng Hồ Chí Minh</div>
-        <div id="CNXHKH" class="subject" onclick="showChapters('CNXHKH')">Chủ nghĩa xã hội khoa học</div>
+        <div id="TTHCM" class="subject" onclick="showChapters('TTHCM')">
+            <div class="subject-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="subject-title">Tư tưởng Hồ Chí Minh</div>
+        </div>
+        <div id="CNXHKH" class="subject" onclick="showChapters('CNXHKH')">
+            <div class="subject-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="subject-title">Chủ nghĩa xã hội khoa học</div>
+        </div>
     </div>
 
     <!-- EXERCISE LIST -->
@@ -124,6 +130,25 @@
     <script>
         // Đọc thống kê thực tế
         const dbStats = JSON.parse(document.getElementById('db-stats').textContent || '{}');
+        const draftPrefix = "alas_quiz_draft_";
+
+        function getDraft(topic) {
+            try {
+                const draft = JSON.parse(localStorage.getItem(draftPrefix + topic) || "null");
+                if (!draft || !Array.isArray(draft.questionIds) || draft.questionIds.length === 0) return null;
+                return draft;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function clearDraft(topic) {
+            localStorage.removeItem(draftPrefix + topic);
+        }
+
+        function escapeTopic(topic) {
+            return encodeURIComponent(topic);
+        }
 
         /* DỮ LIỆU CẤU TRÚC ĐỀ */
         const courses = {
@@ -157,6 +182,7 @@
             courses[course].forEach(ex => {
                 // Lấy dữ liệu thực tế từ stats, nếu chưa làm thì để mặc định 0
                 let stat = dbStats[ex.topic] || { count: 0, time: "0 phút" };
+                let draft = getDraft(ex.topic);
                 
                 // Xác định số câu hỏi dựa trên topic
                 let qCount = 40;
@@ -164,10 +190,17 @@
 
 
                 let action = "";
-                if (stat.count == 0) {
-                    action = `<div class="status not-start" onclick="goQuiz('${ex.topic}')" style="cursor:pointer">Chưa làm</div>`;
+                if (draft) {
+                    let answeredCount = draft.answers ? Object.keys(draft.answers).length : 0;
+                    let totalCount = draft.questionIds.length;
+                    action = `
+                        <div class="progress-box">${answeredCount}/${totalCount}</div>
+                        <button class="continue-btn" onclick="continueQuiz('${ex.topic}')">Tiếp tục</button>
+                        <button class="review-btn" onclick="restartQuiz('${ex.topic}')">Làm lại</button>`;
+                } else if (stat.count == 0) {
+                    action = `<button class="start-btn" onclick="goQuiz('${ex.topic}')">Bắt đầu</button>`;
                 } else {
-                    action = `<button class="review-btn" onclick="goQuiz('${ex.topic}')">Làm lại</button>`;
+                    action = `<button class="review-btn" onclick="restartQuiz('${ex.topic}')">Làm lại</button>`;
                 }
 
                 html += `
@@ -185,8 +218,31 @@
             document.getElementById(course).classList.add("active");
         }
 
-        function goQuiz(topic) { window.location.href = "/quiz?topic=" + topic; }
+        function getActiveCourse() {
+            const activeSubject = document.querySelector(".subject.active");
+            return activeSubject ? activeSubject.id : "TTHCM";
+        }
+
+        function goQuiz(topic) { window.location.href = "/quiz?topic=" + escapeTopic(topic); }
+
+        function continueQuiz(topic) {
+            const draft = getDraft(topic);
+            if (!draft) {
+                goQuiz(topic);
+                return;
+            }
+
+            window.location.href = "/quiz?topic=" + escapeTopic(topic) + "&qids=" + encodeURIComponent(draft.questionIds.join(","));
+        }
+
+        function restartQuiz(topic) {
+            clearDraft(topic);
+            goQuiz(topic);
+        }
+
         window.onload = function () { showChapters("TTHCM"); }
+        window.addEventListener("focus", function () { showChapters(getActiveCourse()); });
+        window.addEventListener("pageshow", function () { showChapters(getActiveCourse()); });
     </script>
 
 </body>

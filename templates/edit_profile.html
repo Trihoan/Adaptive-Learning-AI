@@ -2,9 +2,10 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Thông tin cá nhân</title>
+    <title>Chỉnh sửa thông tin cá nhân</title>
     <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/edit_profile.css') }}?v=1">
     <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -26,47 +27,44 @@
         </div>
     </div>
 
-    <div class="profile-container">
+    <div class="profile-container edit-profile-container">
         <div class="profile-header">
             <i class="fa-regular fa-circle-user profile-avatar"></i>
-            <h2>Thông tin cá nhân</h2>
+            <h2>Chỉnh sửa thông tin</h2>
         </div>
 
-        {% if saved %}
-        <div class="profile-alert success">Đã cập nhật email thành công.</div>
-        {% endif %}
+        <form action="/profile/update" method="POST" class="profile-edit-form standalone">
+            {% if error %}
+            <div class="profile-alert error">{{ error }}</div>
+            {% endif %}
 
-        <div class="profile-info">
-            <div class="info-group">
-                <span class="info-label">Họ và tên:</span>
-                <span class="info-value">{{ user.hoTen }}</span>
-            </div>
-            <div class="info-group">
-                <span class="info-label">Mã sinh viên:</span>
-                <span class="info-value">{{ user.maSV }}</span>
-            </div>
-            <div class="info-group">
-                <span class="info-label">Tên đăng nhập:</span>
-                <span class="info-value">{{ user.tenDangNhap }}</span>
-            </div>
-            <div class="info-group">
-                <span class="info-label">Email:</span>
-                <span class="info-value">{{ user.email if user.email else 'Chưa cập nhật' }}</span>
-            </div>
-            <div class="info-group">
-                <span class="info-label">Vai trò:</span>
-                <span class="info-value">
-                    {% if user.role == 'admin' %}
-                        Quản trị viên
-                    {% else %}
-                        Sinh viên
-                    {% endif %}
-                </span>
-            </div>
-        </div>
+            <div class="profile-info edit-profile-info">
+                <label class="edit-info-group">
+                    <span class="info-label">Mã sinh viên:</span>
+                    <input type="text" value="{{ user.maSV }}" readonly>
+                </label>
 
-        <a href="/profile/edit" class="edit-profile-btn">Chỉnh sửa thông tin</a>
-        <a href="/home" class="back-btn">Quay lại trang chủ</a>
+                <label class="edit-info-group">
+                    <span class="info-label">Tên đăng nhập:</span>
+                    <input type="text" value="{{ user.tenDangNhap }}" readonly>
+                </label>
+
+                <label class="edit-info-group">
+                    <span class="info-label">Vai trò:</span>
+                    <input type="text" value="{{ 'Quản trị viên' if user.role == 'admin' else 'Sinh viên' }}" readonly>
+                </label>
+
+                <label class="edit-info-group email-field">
+                    <span class="info-label">Email:</span>
+                    <input type="email" name="email" value="{{ user.email or '' }}" placeholder="Nhập email để dùng khôi phục mật khẩu" required>
+                </label>
+            </div>
+
+            <div class="profile-actions">
+                <a href="/profile" class="cancel-profile-btn">Hủy bỏ</a>
+                <button type="submit" class="save-profile-btn">Lưu thay đổi</button>
+            </div>
+        </form>
     </div>
 
     <script>

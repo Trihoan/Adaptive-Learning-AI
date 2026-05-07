@@ -104,11 +104,67 @@
         // 1. ĐỌC DỮ LIỆU
         const questionsData = document.getElementById('questions-data').textContent;
         const questions = JSON.parse(questionsData || '[]');
+        const currentTopic = {{ topic | tojson | safe }};
+        const draftKey = "alas_quiz_draft_" + currentTopic;
+        let currentQuestion = 1;
+        let isSubmitting = false;
 
         // 2. ĐỒNG HỒ ĐẾM XUÔI
         let secondsElapsed = 0;
         const timerElement = document.getElementById('timer');
         const timeTakenInput = document.getElementById('time_taken');
+
+        function getSelectedAnswers() {
+            const answers = {};
+            document.querySelectorAll('.answer-radio:checked').forEach(radio => {
+                answers[radio.name] = radio.value;
+            });
+            return answers;
+        }
+
+        function saveDraft() {
+            if (isSubmitting) return;
+            if (!questions.length) return;
+
+            const draft = {
+                topic: currentTopic,
+                questionIds: questions.map(q => q.id),
+                answers: getSelectedAnswers(),
+                secondsElapsed: secondsElapsed,
+                currentQuestion: currentQuestion,
+                updatedAt: new Date().toISOString()
+            };
+            localStorage.setItem(draftKey, JSON.stringify(draft));
+        }
+
+        function restoreDraft() {
+            try {
+                const draft = JSON.parse(localStorage.getItem(draftKey) || "null");
+                if (!draft || !Array.isArray(draft.questionIds)) return;
+
+                const currentIds = questions.map(q => String(q.id)).join(",");
+                const draftIds = draft.questionIds.map(String).join(",");
+                if (currentIds !== draftIds) return;
+
+                secondsElapsed = Number(draft.secondsElapsed || 0);
+                timeTakenInput.value = secondsElapsed;
+
+                Object.entries(draft.answers || {}).forEach(([name, value]) => {
+                    const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (!radio) return;
+
+                    radio.checked = true;
+                    const idx = radio.getAttribute('data-idx');
+                    const box = document.getElementById("box" + idx);
+                    if (box) {
+                        box.style.background = "#4CAF50";
+                        box.style.color = "white";
+                    }
+                });
+
+                currentQuestion = Number(draft.currentQuestion || 1);
+            } catch (e) {}
+        }
 
         const timerInterval = setInterval(() => {
             secondsElapsed++;
@@ -116,10 +172,12 @@
             let seconds = secondsElapsed % 60;
             timerElement.innerHTML = (minutes < 10 ? '0' : '') + minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
             timeTakenInput.value = secondsElapsed;
+            saveDraft();
         }, 1000);
 
         // 3. XỬ LÝ HIỂN THỊ CÂU HỎI
         function showQuestion(num) {
+            currentQuestion = num;
             const allBlocks = document.querySelectorAll(".question-block");
             allBlocks.forEach(block => {
                 block.style.display = "none";
@@ -136,6 +194,7 @@
             btn.addEventListener('click', function() {
                 const targetNum = parseInt(this.getAttribute('data-target'));
                 showQuestion(targetNum);
+                saveDraft();
             });
         });
 
@@ -148,20 +207,28 @@
                     box.style.background = "#4CAF50";
                     box.style.color = "white";
                 }
+                saveDraft();
             });
         });
 
         // Khi bấm nút nộp bài
         document.getElementById('btnSubmit').addEventListener('click', function() {
             if (confirm("Bạn có chắc muốn nộp bài?")) {
+                isSubmitting = true;
                 clearInterval(timerInterval);
+                localStorage.removeItem(draftKey);
                 document.getElementById("quizForm").submit();
             }
         });
 
+        window.addEventListener("beforeunload", saveDraft);
+        window.addEventListener("pagehide", saveDraft);
+
         // 5. KHỞI TẠO MẶC ĐỊNH
         window.onload = function () {
-            showQuestion(1);
+            restoreDraft();
+            showQuestion(currentQuestion);
+            saveDraft();
         }
 
         /* LOGIC MENU NGƯỜI DÙNG */
