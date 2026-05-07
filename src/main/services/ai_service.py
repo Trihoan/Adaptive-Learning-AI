@@ -2,7 +2,7 @@ import os
 import joblib
 import numpy as np
 import pandas as pd
-from src.main.ai.ai_engine import ALEngine
+from src.main.ai.core.ai_engine import ALEngine
 
 class AIService:
     def __init__(self):

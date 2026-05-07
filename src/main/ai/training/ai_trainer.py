@@ -6,7 +6,7 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, precision_score
 from sklearn.decomposition import PCA
-from src.main.ai.ai_engine import ALEngine
+from src.main.ai.core.ai_engine import ALEngine
 from src.main.database import SessionLocal
 from src.main.domain.models import User
 import json

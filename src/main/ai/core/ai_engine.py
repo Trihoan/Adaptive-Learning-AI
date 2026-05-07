@@ -26,7 +26,7 @@ class ALEngine:
     def train_all(self):
         """Huấn luyện bộ 3 mô hình AI: K-Means, Decision Tree, KNN"""
         if not os.path.exists(self.data_path):
-            print(f"⚠️ Cảnh báo: Không tìm thấy {self.data_path}. AI sẽ hoạt động ở chế độ cơ bản.")
+            print(f"Cảnh báo: Không tìm thấy {self.data_path}. AI sẽ hoạt động ở chế độ cơ bản.")
             return False
 
         df = pd.read_csv(self.data_path)
@@ -53,7 +53,7 @@ class ALEngine:
         self.knn = NearestNeighbors(n_neighbors=5, algorithm='auto')
         self.knn.fit(X_scaled)
         
-        print("✅ [AI Engine] Đã huấn luyện xong tất cả mô hình.")
+        print("[AI Engine] Đã huấn luyện xong tất cả mô hình.")
         return True
 
     def predict_all(self, math, prog, hours, video):
@@ -88,5 +88,5 @@ class ALEngine:
                 "similar_students_indices": indices[0].tolist()
             }
         except Exception as e:
-            print(f"❌ [AI Engine] Lỗi khi dự đoán: {e}")
+            print(f"[AI Engine] Lỗi khi dự đoán: {e}")
             return {"group": "Khá", "is_passed": "Chưa xác định", "similar_students_indices": []}

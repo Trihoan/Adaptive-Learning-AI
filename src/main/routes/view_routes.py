@@ -426,7 +426,7 @@ async def admin_users_page(request: Request, user_id: Optional[str] = Cookie(Non
     # TỰ ĐỘNG CẬP NHẬT BIỂU ĐỒ AI KHI VÀO TRANG ADMIN
     ai_chart_file = "ai_clusters.png" # File mặc định
     try:
-        from src.main.ai.ai_trainer import train_and_evaluate
+        from src.main.ai.training.ai_trainer import train_and_evaluate
         # Vẽ biểu đồ riêng cho người đang xem
         ai_chart_file = train_and_evaluate(user_id) 
     except Exception as e:
