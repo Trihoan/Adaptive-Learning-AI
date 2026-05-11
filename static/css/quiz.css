@@ -164,6 +164,46 @@ body {
     border-radius: 4px;
 }
 
-.submit-btn:hover {
-    background: #b27a4c;
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+    .header {
+        padding: 10px 15px;
+    }
+
+    .quiz-container {
+        flex-direction: column-reverse;
+        padding: 15px;
+        gap: 20px;
+    }
+
+    .quiz-right {
+        width: 100%;
+    }
+
+    .quiz-title {
+        font-size: 22px;
+    }
+
+    .question p {
+        font-size: 16px;
+    }
+
+    .question label {
+        padding: 15px 10px;
+        font-size: 14px;
+    }
+    
+    .question input[type="radio"] {
+        transform: scale(1.2);
+    }
+
+    .question-grid {
+        grid-template-columns: repeat(8, 1fr);
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 15px;
+        font-weight: bold;
+    }
 }

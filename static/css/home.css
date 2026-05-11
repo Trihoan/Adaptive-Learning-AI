@@ -346,11 +346,66 @@ body {
     border-radius: 4px;
 }
 
-.done {
-    background: #4caf50;
-    color: white;
-}
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+    .header {
+        padding: 10px 15px;
+    }
+    
+    .header .logo a {
+        font-size: 16px;
+    }
+    
+    .user {
+        font-size: 14px;
+    }
 
-.not-start {
-    background: #bdbdbd;
+    .subjects {
+        padding: 10px 10px;
+        gap: 8px;
+    }
+    
+    .subject {
+        width: 160px;
+        min-width: 160px;
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .subject-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+
+    .exercise {
+        padding: 15px;
+    }
+    
+    .exercise-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .exercise-action {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .exercise-info .title {
+        font-size: 15px;
+    }
+    
+    .exercise-info .meta {
+        font-size: 11px;
+    }
+
+    /* Chatbot adjustments */
+    #chat-container {
+        width: 90%;
+        right: 5%;
+        bottom: 80px;
+    }
 }
