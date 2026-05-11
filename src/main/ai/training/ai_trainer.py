@@ -12,10 +12,53 @@ from src.main.domain.models import User
 import json
 import os
 
+def sync_db_to_csv():
+    """Lấy dữ liệu từ DB và cập nhật vào students_data.csv"""
+    db = SessionLocal()
+    try:
+        # Lấy thông tin tổng hợp của tất cả user có điểm
+        users = db.query(User).filter(User.avg_score > 0).all()
+        if not users:
+            return False
+
+        real_data = []
+        for u in users:
+            # Giả định video_completion_rate là 0.8 nếu không có dữ liệu thực tế
+            real_data.append({
+                'math_score': u.avg_score,
+                'programming_score': u.avg_score, # Tạm thời lấy bằng avg_score
+                'study_hours_per_week': u.total_time if u.total_time else 0,
+                'video_completion_rate': 0.8,
+                'is_passed': 1 if u.avg_score >= 5 else 0
+            })
+        
+        if real_data:
+            new_df = pd.DataFrame(real_data)
+            # Đọc dữ liệu mẫu cũ (nếu muốn giữ lại làm nền) hoặc tạo mới hoàn toàn
+            data_path = 'data/students_data.csv'
+            if os.path.exists(data_path):
+                old_df = pd.read_csv(data_path)
+                # Kết hợp: Dữ liệu mẫu + Dữ liệu thật
+                # Lưu ý: Chỉ lấy dữ liệu thật để AI "thông minh" theo thực tế
+                combined_df = pd.concat([old_df, new_df], ignore_index=True)
+                combined_df.to_csv(data_path, index=False)
+                print(f"📊 Đã đồng bộ {len(real_data)} bản ghi từ Database vào {data_path}")
+            else:
+                new_df.to_csv(data_path, index=False)
+            return True
+    except Exception as e:
+        print(f"⚠️ Lỗi đồng bộ dữ liệu: {e}")
+    finally:
+        db.close()
+    return False
+
 def train_and_evaluate(target_sv=None):
     if target_sv is None:
         target_sv = "ADMIN"
         
+    print(f"[Giai đoạn 0] Đồng bộ dữ liệu thực tế...")
+    sync_db_to_csv()
+
     print(f"[Giai đoạn 4] Bắt đầu quá trình huấn luyện và đánh giá cho: {target_sv}...")
     
     # 1. Đọc dữ liệu mẫu từ CSV

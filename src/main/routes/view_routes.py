@@ -442,7 +442,7 @@ async def admin_users_page(request: Request, user_id: Optional[str] = Cookie(Non
     }
     try:
         import os
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         file_path = os.path.join(base_dir, 'models', 'ai_metrics.json')
         
         with open(file_path, 'r', encoding='utf-8') as f:
