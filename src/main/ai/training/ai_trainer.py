@@ -15,7 +15,7 @@ import json
 import os
 
 def sync_db_to_csv():
-    """Lấy dữ liệu từ DB và cập nhật vào students_data.csv"""
+    """Lấy dữ liệu từ DB và cập nhật vào students_data.csv (Tránh trùng lặp)"""
     db = SessionLocal()
     try:
         # Lấy thông tin tổng hợp của tất cả user có điểm
@@ -23,31 +23,39 @@ def sync_db_to_csv():
         if not users:
             return False
 
-        real_data = []
+        # Chuẩn bị dữ liệu từ DB
+        db_data = []
         for u in users:
-            # Giả định video_completion_rate là 0.8 nếu không có dữ liệu thực tế
-            real_data.append({
+            db_data.append({
+                'maSV': u.maSV,
                 'math_score': u.avg_score,
-                'programming_score': u.avg_score, # Tạm thời lấy bằng avg_score
+                'programming_score': u.avg_score,
                 'study_hours_per_week': u.total_time if u.total_time else 0,
                 'video_completion_rate': 0.8,
                 'is_passed': 1 if u.avg_score >= 5 else 0
             })
         
-        if real_data:
-            new_df = pd.DataFrame(real_data)
-            # Đọc dữ liệu mẫu cũ (nếu muốn giữ lại làm nền) hoặc tạo mới hoàn toàn
-            data_path = 'data/students_data.csv'
-            if os.path.exists(data_path):
-                old_df = pd.read_csv(data_path)
-                # Kết hợp: Dữ liệu mẫu + Dữ liệu thật
-                # Lưu ý: Chỉ lấy dữ liệu thật để AI "thông minh" theo thực tế
-                combined_df = pd.concat([old_df, new_df], ignore_index=True)
-                combined_df.to_csv(data_path, index=False)
-                print(f"📊 Đã đồng bộ {len(real_data)} bản ghi từ Database vào {data_path}")
-            else:
-                new_df.to_csv(data_path, index=False)
-            return True
+        db_df = pd.DataFrame(db_data)
+        data_path = 'data/students_data.csv'
+
+        if os.path.exists(data_path):
+            old_df = pd.read_csv(data_path)
+            
+            # Nếu file cũ chưa có cột maSV (dữ liệu mẫu), ta gắn nhãn cho chúng
+            if 'maSV' not in old_df.columns:
+                old_df['maSV'] = 'SAMPLE'
+
+            # Tách riêng dữ liệu mẫu và dữ liệu người dùng thật đã có trong CSV
+            sample_data = old_df[old_df['maSV'] == 'SAMPLE']
+            
+            # Kết hợp: Dữ liệu mẫu + Dữ liệu mới nhất từ DB
+            # Điều này đảm bảo mỗi maSV từ DB chỉ xuất hiện 1 lần duy nhất với điểm số mới nhất
+            combined_df = pd.concat([sample_data, db_df], ignore_index=True)
+            combined_df.to_csv(data_path, index=False)
+            print(f"📊 Đã đồng bộ sạch sẽ {len(db_data)} sinh viên thật vào {data_path} (Không trùng lặp)")
+        else:
+            db_df.to_csv(data_path, index=False)
+        return True
     except Exception as e:
         print(f"⚠️ Lỗi đồng bộ dữ liệu: {e}")
     finally:
