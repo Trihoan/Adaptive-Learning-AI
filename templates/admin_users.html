@@ -5,6 +5,15 @@
     <title>Quản lý sinh viên</title>
     <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/admin.css') }}">
+    <style>
+        .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
+        .alert-success { color: #3c763d; background-color: #dff0d8; border-color: #d6e9c6; }
+        .alert-danger { color: #a94442; background-color: #f2dede; border-color: #ebccd1; }
+        
+        .admin-nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .nav-link { padding: 10px 20px; text-decoration: none; color: #666; border-radius: 6px; background: #f5f5f5; transition: 0.3s; }
+        .nav-link.active { background: #2196f3; color: white; }
+    </style>
     <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -25,6 +34,12 @@
     </div>
 
     <div class="admin-container">
+        <!-- NAVIGATION -->
+        <div class="admin-nav">
+            <a href="/admin/users" class="nav-link active">Quản lý sinh viên</a>
+            <a href="/admin/content" class="nav-link">Quản lý nội dung & Đề thi</a>
+        </div>
+
         <h2>Danh sách người dùng</h2>
         <table>
             <thead>
@@ -71,7 +86,12 @@
                     <p><i>Biểu đồ năng lực cá nhân hóa (Ngôi sao đỏ là vị trí của {{ user_fullname.split(' - ')[0] }})</i></p>
                 </div>
                 <div class="ai-info">
-                    <h4>Đánh giá hiệu năng mô hình</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h4>Đánh giá hiệu năng mô hình</h4>
+                        <button onclick="trainAI()" class="action-btn" style="background: #2196f3; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">
+                            <i class="fa-solid fa-brain"></i> Huấn luyện lại ngay
+                        </button>
+                    </div>
                     <p>Hệ thống AI sử dụng thuật toán Decision Tree và K-Means để phân loại và đưa ra gợi ý lộ trình học tập cá nhân hóa.</p>
                     
                     <div class="metric-box">
@@ -103,6 +123,23 @@
     </div>
 
     <script>
+        async function trainAI() {
+            if (!confirm("Hệ thống sẽ tính toán lại toàn bộ dữ liệu. Quá trình này có thể mất vài giây. Tiếp tục?")) return;
+            
+            try {
+                const response = await fetch('/admin/ai/train', { method: 'POST' });
+                const data = await response.json();
+                if (data.status === "success") {
+                    alert("Huấn luyện AI thành công!");
+                    location.reload();
+                } else {
+                    alert("Lỗi: " + data.detail);
+                }
+            } catch (e) {
+                alert("Lỗi kết nối!");
+            }
+        }
+
         async function deleteUser(maSV) {
             if (!confirm("Bạn có chắc chắn muốn xóa người dùng này?")) return;
             

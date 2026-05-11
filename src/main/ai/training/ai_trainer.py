@@ -16,12 +16,12 @@ def train_and_evaluate(target_sv=None):
     if target_sv is None:
         target_sv = "ADMIN"
         
-    print(f"🚀 [Giai đoạn 4] Bắt đầu quá trình huấn luyện và đánh giá cho: {target_sv}...")
+    print(f"[Giai đoạn 4] Bắt đầu quá trình huấn luyện và đánh giá cho: {target_sv}...")
     
     # 1. Đọc dữ liệu mẫu từ CSV
     data_path = 'data/students_data.csv'
     if not os.path.exists(data_path):
-        print(f"❌ Không tìm thấy file dữ liệu: {data_path}")
+        print(f"Không tìm thấy file dữ liệu: {data_path}")
         return "ai_clusters.png"
         
     df = pd.read_csv(data_path)

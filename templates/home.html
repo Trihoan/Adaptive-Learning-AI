@@ -23,7 +23,7 @@
             <div id="user-menu" class="user-menu">
                 <div class="menu-item" onclick="goProfile()">Thông tin cá nhân</div>
                 {% if is_admin %}
-                <div class="menu-item" onclick="location.href='/admin/users'" style="color: blue; font-weight: bold;">Quản lý sinh viên</div>
+                <div class="menu-item" onclick="location.href='/admin/users'" style="color: blue; font-weight: bold;">Quản lý</div>
                 {% endif %}
                 <div class="menu-item logout" onclick="logout()">Đăng xuất</div>
             </div>
@@ -31,15 +31,8 @@
     </div>
 
     <!-- SUBJECT LIST -->
-    <div class="subjects">
-        <div id="TTHCM" class="subject" onclick="showChapters('TTHCM')">
-            <div class="subject-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-            <div class="subject-title">Tư tưởng Hồ Chí Minh</div>
-        </div>
-        <div id="CNXHKH" class="subject" onclick="showChapters('CNXHKH')">
-            <div class="subject-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-            <div class="subject-title">Chủ nghĩa xã hội khoa học</div>
-        </div>
+    <div class="subjects" id="subject-list">
+        <!-- Sẽ được load động bằng JS -->
     </div>
 
     <!-- EXERCISE LIST -->
@@ -122,13 +115,18 @@
         }
     </script>
 
-    <!-- DỮ LIỆU THỐNG KÊ TỪ DATABASE -->
+    <!-- DỮ LIỆU ĐỘNG TỪ DATABASE -->
+    <script id="dynamic-courses" type="application/json">
+        {{ dynamic_courses | tojson | safe }}
+    </script>
+
     <script id="db-stats" type="application/json">
         {{ db_stats | tojson | safe }}
     </script>
 
     <script>
-        // Đọc thống kê thực tế
+        // Đọc dữ liệu từ backend
+        const dynamicCourses = JSON.parse(document.getElementById('dynamic-courses').textContent || '{}');
         const dbStats = JSON.parse(document.getElementById('db-stats').textContent || '{}');
         const draftPrefix = "alas_quiz_draft_";
 
@@ -150,44 +148,21 @@
             return encodeURIComponent(topic);
         }
 
-        /* DỮ LIỆU CẤU TRÚC ĐỀ */
-        const courses = {
-            TTHCM: [
-                { title: "Đề số 1: Cơ sở hình thành TTHCM", topic: "TTHCM_Chương 1" },
-                { title: "Đề số 2: Độc lập dân tộc và CNXH", topic: "TTHCM_Chương 2" },
-                { title: "Đề số 3: Đảng CS và Nhà nước", topic: "TTHCM_Chương 3" },
-                { title: "Đề số 4: Đại đoàn kết dân tộc và quốc tế", topic: "TTHCM_Chương 4" },
-                { title: "Đề số 5: Văn hóa, đạo đức, con người", topic: "TTHCM_Chương 5" },
-                { title: "Đề số 6: Tổng hợp TTHCM (Lần 1)", topic: "Tổng hợp TTHCM 1" },
-                { title: "Đề số 7: Tổng hợp TTHCM (Lần 2)", topic: "Tổng hợp TTHCM 2" },
-                { title: "Đề số 8: Tổng hợp TTHCM (Lần 3)", topic: "Tổng hợp TTHCM 3" },
-                { title: "Đề số 9: Tổng hợp TTHCM (Lần 4)", topic: "Tổng hợp TTHCM 4" }
-            ],
-            CNXHKH: [
-                { title: "Đề số 1: Nhập môn CNXHKH", topic: "Chương 1" },
-                { title: "Đề số 2: Sứ mệnh lịch sử GCCN", topic: "Chương 2" },
-                { title: "Đề số 3: CNXH và thời kỳ quá độ", topic: "Chương 3" },
-                { title: "Đề số 4: Dân chủ XHCN và nhà nước", topic: "Chương 4" },
-                { title: "Đề số 5: Cơ cấu XH - giai cấp", topic: "Chương 5" },
-                { title: "Đề số 6: Vấn đề dân tộc và tôn giáo", topic: "Chương 6" },
-                { title: "Đề số 7: Vấn đề gia đình", topic: "Chương 7" },
-                { title: "Đề số 8: Tổng hợp CNXHKH (Lần 1)", topic: "Tổng hợp 1" },
-                { title: "Đề số 9: Tổng hợp CNXHKH (Lần 2)", topic: "Tổng hợp 2" },
-                { title: "Đề số 10: Tổng hợp CNXHKH (Lần 3)", topic: "Tổng hợp 3" }
-            ]
-        };
+        function showChapters(courseId) {
+            const courseData = dynamicCourses[courseId] || [];
+            let html = `<h3>Danh sách bài luyện tập - ${courseId}</h3>`;
+            
+            if (courseData.length === 0) {
+                html += "<p style='padding: 20px; color: #666;'>Chưa có dữ liệu bài tập cho môn học này.</p>";
+            }
 
-        function showChapters(course) {
-            let html = "<h3>Danh sách bài luyện tập</h3>";
-            courses[course].forEach(ex => {
-                // Lấy dữ liệu thực tế từ stats, nếu chưa làm thì để mặc định 0
+            courseData.forEach((ex, index) => {
                 let stat = dbStats[ex.topic] || { count: 0, time: "0 phút" };
                 let draft = getDraft(ex.topic);
                 
-                // Xác định số câu hỏi dựa trên topic
-                let qCount = 40;
-                if (ex.topic.includes("Tổng hợp")) qCount = 60;
-
+                // Tiêu đề hiển thị
+                let displayTitle = ex.is_general ? ex.title : `Bài luyện tập: ${ex.title}`;
+                let qCount = ex.is_general ? 60 : 40;
 
                 let action = "";
                 if (draft) {
@@ -204,23 +179,26 @@
                 }
 
                 html += `
-                    <div class="exercise-item">
+                    <div class="exercise-item ${ex.is_general ? 'general-exam' : ''}">
                         <div class="exercise-info">
-                            <div class="title">${ex.title}</div>
+                            <div class="title">${displayTitle}</div>
                             <div class="meta">Tổng thời gian làm bài: ${stat.time} &nbsp;&nbsp; ${stat.count} lần nộp bài &nbsp;&nbsp; ${qCount} câu hỏi</div>
                         </div>
                         <div class="exercise-action">${action}</div>
                     </div>`;
             });
+            
             document.getElementById("chapter-list").innerHTML = html;
-            let subjects = document.querySelectorAll(".subject");
-            subjects.forEach(sub => sub.classList.remove("active"));
-            document.getElementById(course).classList.add("active");
+            
+            // Cập nhật trạng thái active cho nút môn học
+            document.querySelectorAll(".subject").forEach(sub => sub.classList.remove("active"));
+            const activeSub = document.getElementById(courseId);
+            if (activeSub) activeSub.classList.add("active");
         }
 
         function getActiveCourse() {
             const activeSubject = document.querySelector(".subject.active");
-            return activeSubject ? activeSubject.id : "TTHCM";
+            return activeSubject ? activeSubject.id : Object.keys(dynamicCourses)[0] || "TTHCM";
         }
 
         function goQuiz(topic) { window.location.href = "/quiz?topic=" + escapeTopic(topic); }
@@ -231,7 +209,6 @@
                 goQuiz(topic);
                 return;
             }
-
             window.location.href = "/quiz?topic=" + escapeTopic(topic) + "&qids=" + encodeURIComponent(draft.questionIds.join(","));
         }
 
@@ -240,9 +217,24 @@
             goQuiz(topic);
         }
 
-        window.onload = function () { showChapters("TTHCM"); }
+        function renderSubjects() {
+            const subjectList = document.getElementById("subject-list");
+            const courseIds = Object.keys(dynamicCourses);
+            
+            subjectList.innerHTML = courseIds.map(id => `
+                <div id="${id}" class="subject" onclick="showChapters('${id}')">
+                    <div class="subject-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <div class="subject-title">${id === 'TTHCM' ? 'Tư tưởng Hồ Chí Minh' : (id === 'CNXHKH' ? 'Chủ nghĩa xã hội khoa học' : id)}</div>
+                </div>
+            `).join('');
+        }
+
+        window.onload = function () { 
+            renderSubjects();
+            const firstCourse = Object.keys(dynamicCourses)[0] || "TTHCM";
+            showChapters(firstCourse); 
+        }
         window.addEventListener("focus", function () { showChapters(getActiveCourse()); });
-        window.addEventListener("pageshow", function () { showChapters(getActiveCourse()); });
     </script>
 
 </body>

@@ -47,82 +47,75 @@ async def register_page(request: Request):
 async def home_page(request: Request, user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
     fullname = get_fullname(db, user_id)
     
+    # 1. Lấy danh sách môn học và chương từ DB
+    db_courses = db.query(Course).all()
+    dynamic_courses = {}
+    for c in db_courses:
+        db_chapters = db.query(Chapter).filter(Chapter.monhoc_id == c.id).order_by(Chapter.stt).all()
+        dynamic_courses[c.maMonHoc] = []
+        for ch in db_chapters:
+            dynamic_courses[c.maMonHoc].append({
+                "title": ch.tenChuong if ch.stt < 100 else f"{ch.tenChuong}",
+                "topic": ch.tenChuong, # Dùng tenChuong làm topic key
+                "is_general": ch.stt >= 100
+            })
+
     # Lấy thống kê thực tế từ DB
     stats = {}
     if user_id:
         from sqlalchemy import func, text
-        from src.main.domain.models import Exam
+        from src.main.domain.models import Exam, Chapter as ChapterModel
         
-        # Nhóm theo maChuong, đếm số lần làm và tính tổng số giây (dùng TIMESTAMPDIFF cho MySQL)
+        # Nhóm theo maChuong, đếm số lần làm và tính tổng số giây
         results = db.query(
             Exam.maChuong, 
             func.count(Exam.maBaiKiemTra).label("count"),
             func.sum(func.timestampdiff(text('SECOND'), Exam.thoiGianBatDau, Exam.thoiGianKetThuc)).label("total_seconds")
         ).filter(Exam.maSV == user_id).group_by(Exam.maChuong).all()
         
-        # Ánh xạ ngược từ maChuong sang topic để template nhận diện được
-        rev_topic_map = {
-            # CNXHKH
-            1: "Chương 1", 2: "Chương 2", 3: "Chương 3",
-            4: "Chương 4", 5: "Chương 5", 6: "Chương 6", 7: "Chương 7",
-            
-            # TTHCM
-            8: "TTHCM_Chương 1", 9: "TTHCM_Chương 2", 10: "TTHCM_Chương 3",
-            11: "TTHCM_Chương 4", 12: "TTHCM_Chương 5",
-
-            # Tổng hợp
-            201: "Tổng hợp 1", 202: "Tổng hợp TTHCM 1",
-            203: "Tổng hợp 2", 204: "Tổng hợp 3"
-        }
-        
-        def format_time(seconds):
-            if not seconds: return "0 phút"
-            minutes = round(seconds / 60, 1)
-            return f"{minutes} phút"
-
+        # Ánh xạ từ maChuong sang tên chương (topic)
         for r in results:
-            topic_key = rev_topic_map.get(r.maChuong, "default")
-            stats[topic_key] = {
-                "count": r.count, 
-                "time": format_time(r.total_seconds)
-            }
+            ch_obj = db.query(ChapterModel).filter(ChapterModel.maChuong == r.maChuong).first()
+            if ch_obj:
+                def format_time(seconds):
+                    if not seconds: return "0 phút"
+                    minutes = round(seconds / 60, 1)
+                    return f"{minutes} phút"
+                
+                stats[ch_obj.tenChuong] = {
+                    "count": r.count, 
+                    "time": format_time(r.total_seconds)
+                }
 
     return templates.TemplateResponse(
         "home.html", 
         {
             "request": request, 
             "user_fullname": fullname,
-            "db_stats": stats, # Truyền thống kê vào template
+            "db_stats": stats,
+            "dynamic_courses": dynamic_courses,
             "is_admin": check_admin(db, user_id)
         }
     )
 
+from src.main.domain.models import Chapter, Course
+
 @router.get("/course/{course_name}", response_class=HTMLResponse)
 async def course_page(request: Request, course_name: str, user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
     fullname = get_fullname(db, user_id)
-    chapters = []
-    course_title = "Unknown"
-
-    if course_name == "TTHCM":
-        chapters = [
-            "Chương 1: Cơ sở hình thành và phát triển Tư tưởng Hồ Chí Minh",
-            "Chương 2: Tư tưởng Hồ Chí Minh về độc lập dân tộc và Chủ nghĩa xã hội",
-            "Chương 3: Tư tưởng Hồ Chí Minh về Đảng Cộng sản và Nhà nước",
-            "Chương 4: Tư tưởng Hồ Chí Minh về đại đoàn kết dân tộc và đoàn kết quốc tế",
-            "Chương 5: Tư tưởng Hồ Chí Minh về văn hóa, đạo đức, con người"
-        ]
-        course_title = "Tư tưởng Hồ Chí Minh"
-    elif course_name == "CNXHKH":
-        chapters = [
-            "Chương 1: Nhập môn Chủ nghĩa xã hội khoa học",
-            "Chương 2: Sứ mệnh lịch sử của giai cấp công nhân",
-            "Chương 3: Chủ nghĩa xã hội và thời kỳ quá độ",
-            "Chương 4: Dân chủ xã hội chủ nghĩa và nhà nước",
-            "Chương 5: Cơ cấu xã hội - giai cấp và liên minh",
-            "Chương 6: Vấn đề dân tộc và tôn giáo",
-            "Chương 7: Vấn đề gia đình trong thời kỳ quá độ"
-        ]
-        course_title = "Chủ nghĩa xã hội khoa học"
+    
+    # Lấy thông tin môn học từ Database
+    course = db.query(Course).filter(Course.maMonHoc == course_name).first()
+    
+    if course:
+        # Lấy danh sách chương từ Database
+        db_chapters = db.query(Chapter).filter(Chapter.monhoc_id == course.id).order_by(Chapter.stt).all()
+        chapters = [f"Chương {c.stt}: {c.tenChuong}" for c in db_chapters]
+        course_title = course.tenMonHoc
+    else:
+        # Fallback nếu không có trong DB
+        chapters = []
+        course_title = "Unknown Course"
 
     return templates.TemplateResponse(
         "course.html", 
@@ -423,7 +416,12 @@ async def admin_users_page(request: Request, user_id: Optional[str] = Cookie(Non
     user_repo = UserRepository(db)
     all_users = user_repo.get_all_users()
 
+    # Lấy danh sách chương để Admin chọn khi thêm câu hỏi
+    all_chapters = db.query(Chapter).all()
+    all_courses = db.query(Course).all()
+
     # TỰ ĐỘNG CẬP NHẬT BIỂU ĐỒ AI KHI VÀO TRANG ADMIN
+    # ... (rest of AI chart logic)
     ai_chart_file = "ai_clusters.png" # File mặc định
     try:
         from src.main.ai.training.ai_trainer import train_and_evaluate
@@ -465,7 +463,28 @@ async def admin_users_page(request: Request, user_id: Optional[str] = Cookie(Non
             "request": request, 
             "users": all_users, 
             "user_fullname": fullname,
-            "ai_metrics": ai_metrics # Truyền vào template
+            "ai_metrics": ai_metrics,
+            "all_chapters": all_chapters,
+            "all_courses": all_courses
+        }
+    )
+
+@router.get("/admin/content", response_class=HTMLResponse)
+async def admin_content_page(request: Request, user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
+    if not check_admin(db, user_id):
+        return RedirectResponse(url="/home")
+    
+    fullname = get_fullname(db, user_id)
+    all_chapters = db.query(Chapter).all()
+    all_courses = db.query(Course).all()
+
+    return templates.TemplateResponse(
+        "admin_content.html", 
+        {
+            "request": request, 
+            "user_fullname": fullname,
+            "all_chapters": all_chapters,
+            "all_courses": all_courses
         }
     )
 

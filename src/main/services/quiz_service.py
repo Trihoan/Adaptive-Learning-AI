@@ -88,61 +88,51 @@ class QuizService:
         )
 
     def get_questions_by_topic(self, topic: str) -> List[Dict[str, Any]]:
-        # Ánh xạ Topic/Đề sang danh sách các Chapter ID (Khớp với home.html mới)
-        topic_map = {
-            # CNXH KH: Khớp tên tiếng Việt từ home.html
-            "Chương 1": [1], "Chương 2": [2], "Chương 3": [3], "Chương 4": [4], 
-            "Chương 5": [5], "Chương 6": [6], "Chương 7": [7],
-            
-            "Tổng hợp 1": [1, 2, 3, 4, 5, 6, 7],
-            "Tổng hợp 2": [1, 2, 3, 4, 5, 6, 7],
-            "Tổng hợp 3": [1, 2, 3, 4, 5, 6, 7],
-            "Tổng hợp 4": [1, 2, 3, 4, 5, 6, 7],
-
-            # TTHCM: Đã chỉnh STT 1-5 ứng với maChuong 8-12
-            "TTHCM_Chương 1": [8], "TTHCM_Chương 2": [9], "TTHCM_Chương 3": [10],
-            "TTHCM_Chương 4": [11], "TTHCM_Chương 5": [12],
-            
-            "Tổng hợp TTHCM 1": [8, 9, 10, 11, 12],
-            "Tổng hợp TTHCM 2": [8, 9, 10, 11, 12],
-            "Tổng hợp TTHCM 3": [8, 9, 10, 11, 12],
-            "Tổng hợp TTHCM 4": [8, 9, 10, 11, 12]
-        }
+        from src.main.domain.models import Chapter, Course
         
-        chapter_ids = topic_map.get(topic, [1])
+        # 1. Tìm chương dựa trên tên (topic)
+        chapter = self.db.query(Chapter).filter(Chapter.tenChuong == topic).first()
+        if not chapter:
+            return []
+
         all_questions = []
-
         try:
-            for c_id in chapter_ids:
-                db_questions = self.repo.get_questions_by_chapter(c_id)
-                if db_questions:
-                    for q in db_questions:
-                        ans_list = q.answers 
-                        q_data = {
-                            "id": str(q.maCauHoi),
-                            "text": q.noiDung,
-                            "chapter_id": c_id, 
-                            "A": ans_list[0].noiDungDapAn if len(ans_list) > 0 else "N/A",
-                            "B": ans_list[1].noiDungDapAn if len(ans_list) > 1 else "N/A",
-                            "C": ans_list[2].noiDungDapAn if len(ans_list) > 2 else "N/A",
-                            "D": ans_list[3].noiDungDapAn if len(ans_list) > 3 else "N/A",
-                            "correct": self._get_correct_label(ans_list)
-                        }
-                        all_questions.append(q_data)
-            
-            if not all_questions:
-                return [{ "id": "sample", "text": "Đang cập nhật câu hỏi cho chương này...", "A": "Đang cập nhật", "correct": "A", "chapter_id": chapter_ids[0] }]
-
-            # Trộn câu hỏi
-            import random
-            random.shuffle(all_questions)
-            
-            # Giới hạn câu hỏi
-            if "Tổng hợp" in topic:
+            if chapter.stt >= 100:
+                # ĐỀ TỔNG HỢP: Lấy từ tất cả các chương của môn học đó
+                course_chapters = self.db.query(Chapter).filter(
+                    Chapter.monhoc_id == chapter.monhoc_id,
+                    Chapter.stt < 100 # Chỉ lấy từ các chương kiến thức
+                ).all()
+                chapter_ids = [c.maChuong for c in course_chapters]
+                
+                db_questions = self.db.query(Question).filter(Question.maChuong.in_(chapter_ids)).all()
                 limit = 60
             else:
+                # ĐỀ CHƯƠNG: Chỉ lấy từ chương đó
+                db_questions = self.repo.get_questions_by_chapter(chapter.maChuong)
                 limit = 40
-                
+
+            if db_questions:
+                for q in db_questions:
+                    ans_list = q.answers 
+                    q_data = {
+                        "id": str(q.maCauHoi),
+                        "text": q.noiDung,
+                        "chapter_id": q.maChuong, 
+                        "A": ans_list[0].noiDungDapAn if len(ans_list) > 0 else "N/A",
+                        "B": ans_list[1].noiDungDapAn if len(ans_list) > 1 else "N/A",
+                        "C": ans_list[2].noiDungDapAn if len(ans_list) > 2 else "N/A",
+                        "D": ans_list[3].noiDungDapAn if len(ans_list) > 3 else "N/A",
+                        "correct": self._get_correct_label(ans_list)
+                    }
+                    all_questions.append(q_data)
+            
+            if not all_questions:
+                return [{ "id": "sample", "text": "Đang cập nhật câu hỏi cho chương này...", "A": "Đang cập nhật", "correct": "A", "chapter_id": chapter.maChuong }]
+
+            # Trộn và giới hạn
+            import random
+            random.shuffle(all_questions)
             return all_questions[:limit] 
 
         except Exception as e:

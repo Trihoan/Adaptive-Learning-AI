@@ -7,7 +7,8 @@ from src.main.routes import (
     view_routes, 
     system_routes, 
     quiz_routes,
-    course_routes
+    course_routes,
+    admin_routes
 )
 
 app = FastAPI(title="Adaptive Learning AI API")
@@ -18,6 +19,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # 1. Các Router phục vụ Giao diện (HTML) và Xác thực từ Form
 app.include_router(view_routes.router)
 app.include_router(auth_routes.router)
+app.include_router(admin_routes.router) # Đưa router admin vào
 
 # 2. Các Router phục vụ Logic và API (đặt tiền tố /api cho gọn)
 app.include_router(quiz_routes.router, prefix="/api")

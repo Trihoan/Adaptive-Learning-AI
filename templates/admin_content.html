@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý nội dung</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/admin.css') }}">
+    <style>
+        .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
+        .alert-success { color: #3c763d; background-color: #dff0d8; border-color: #d6e9c6; }
+        .alert-danger { color: #a94442; background-color: #f2dede; border-color: #ebccd1; }
+        .import-section h3 { color: #333; border-bottom: 2px solid #2196f3; padding-bottom: 10px; margin-bottom: 15px; }
+        
+        .admin-nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .nav-link { padding: 10px 20px; text-decoration: none; color: #666; border-radius: 6px; background: #f5f5f5; transition: 0.3s; }
+        .nav-link.active { background: #2196f3; color: white; }
+    </style>
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+             <a href="{{ url_for('home_page') }}">Adaptive Learning AI</a>
+        </div>
+        <div class="user">
+            {{ user_fullname }}
+            <i class="fa-regular fa-circle-user avatar"></i>
+            <div id="user-menu" class="user-menu">
+                <div class="menu-item" onclick="goProfile()">Thông tin cá nhân</div>
+                <div class="menu-item logout" onclick="logout()">Đăng xuất</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <!-- NAVIGATION -->
+        <div class="admin-nav">
+            <a href="/admin/users" class="nav-link">Quản lý sinh viên</a>
+            <a href="/admin/content" class="nav-link active">Quản lý Nội dung & Đề thi</a>
+        </div>
+
+        {% if request.query_params.get('import_status') == 'success' %}
+            <div class="alert alert-success">Nhập dữ liệu thành công!</div>
+        {% elif request.query_params.get('import_status') == 'error' %}
+            <div class="alert alert-danger">Lỗi nhập dữ liệu: {{ request.query_params.get('detail') }}</div>
+        {% elif request.query_params.get('q_status') == 'added' %}
+            <div class="alert alert-success">Đã thêm câu hỏi thành công!</div>
+        {% elif request.query_params.get('exam_status') == 'added' %}
+            <div class="alert alert-success">Đã tạo đề thi tổng hợp thành công!</div>
+        {% endif %}
+
+        <!-- SMART IMPORT SECTION -->
+        <div class="import-section" style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3><i class="fa-solid fa-file-import"></i> Nhập liệu thông minh (Word/Excel)</h3>
+            <form action="/admin/import" method="POST" enctype="multipart/form-data" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+                <div class="form-group">
+                    <label>Mã môn học (Ví dụ: CNXHKH, TTHCM)</label>
+                    <input type="text" name="course_id" required placeholder="CNXHKH" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div class="form-group">
+                    <label>Tên chương (Không bắt buộc với Word)</label>
+                    <input type="text" name="chapter_name" placeholder="Chương 1: ..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div class="form-group">
+                    <label>Loại file</label>
+                    <select name="file_type" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="word">File Word (.docx)</option>
+                        <option value="excel">File Excel (.xlsx)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Chọn tệp tin</label>
+                    <input type="file" name="file" required style="width: 100%; padding: 5px;">
+                </div>
+                <button type="submit" class="action-btn edit-btn" style="grid-column: span 2; padding: 10px; font-weight: bold;">
+                    Bắt đầu nhập dữ liệu
+                </button>
+            </form>
+        </div>
+
+        <!-- ADD INDIVIDUAL QUESTION SECTION -->
+        <div class="import-section" style="margin-top: 30px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3><i class="fa-solid fa-plus-circle"></i> Thêm câu hỏi lẻ</h3>
+            <form action="/admin/questions/add" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Nội dung câu hỏi</label>
+                    <textarea name="noiDung" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; height: 60px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Thuộc chương/đề</label>
+                    <select name="maChuong" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        {% for ch in all_chapters %}
+                        <option value="{{ ch.maChuong }}">{{ ch.maMonHoc }} - {{ ch.tenChuong }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Đáp án đúng</label>
+                    <select name="correct" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="A">Đáp án A</option>
+                        <option value="B">Đáp án B</option>
+                        <option value="C">Đáp án C</option>
+                        <option value="D">Đáp án D</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Đáp án A</label><input type="text" name="ans_a" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></div>
+                <div class="form-group"><label>Đáp án B</label><input type="text" name="ans_b" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></div>
+                <div class="form-group"><label>Đáp án C</label><input type="text" name="ans_c" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></div>
+                <div class="form-group"><label>Đáp án D</label><input type="text" name="ans_d" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></div>
+                <button type="submit" class="action-btn edit-btn" style="grid-column: span 2; padding: 10px; font-weight: bold;">Lưu câu hỏi</button>
+            </form>
+        </div>
+
+        <!-- ADD GENERAL EXAM SECTION -->
+        <div class="import-section" style="margin-top: 30px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3><i class="fa-solid fa-layer-group"></i> Tạo đề thi tổng hợp mới</h3>
+            <form action="/admin/general-exams/add" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+                <div class="form-group">
+                    <label>Môn học</label>
+                    <select name="course_id" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        {% for c in all_courses %}
+                        <option value="{{ c.maMonHoc }}">{{ c.tenMonHoc }} ({{ c.maMonHoc }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tên đề (Ví dụ: Đề tổng hợp số 1)</label>
+                    <input type="text" name="exam_name" required placeholder="Đề tổng hợp số 1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <button type="submit" class="action-btn" style="grid-column: span 2; padding: 10px; font-weight: bold; background: #4caf50; color: white;">Tạo đề thi</button>
+            </form>
+        </div>
+
+        <!-- MANAGE QUESTIONS TABLE -->
+        <div class="import-section" style="margin-top: 30px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3><i class="fa-solid fa-list-check"></i> Quản lý ngân hàng câu hỏi</h3>
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="qSearch" placeholder="Tìm kiếm câu hỏi..." style="padding: 8px; width: 300px; border-radius: 4px; border: 1px solid #ddd;" onkeyup="filterQuestions()">
+                <select id="qFilterChapter" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd;" onchange="filterQuestions()">
+                    <option value="">Tất cả chương</option>
+                    {% for ch in all_chapters %}
+                    <option value="{{ ch.maChuong }}">{{ ch.maMonHoc }} - {{ ch.tenChuong }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="max-height: 500px; overflow-y: auto;">
+                <table id="questionsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nội dung</th>
+                            <th>Chương ID</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="questionsBody">
+                        <!-- Sẽ được load bằng JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allQuestions = [];
+
+        async function loadQuestions() {
+            try {
+                const response = await fetch('/admin/questions');
+                allQuestions = await response.json();
+                renderQuestions(allQuestions);
+            } catch (e) { console.error("Lỗi load câu hỏi:", e); }
+        }
+
+        function renderQuestions(questions) {
+            const body = document.getElementById("questionsBody");
+            body.innerHTML = questions.map(q => `
+                <tr>
+                    <td>${q.maCauHoi}</td>
+                    <td title="${q.noiDung}">${q.noiDung.substring(0, 80)}${q.noiDung.length > 80 ? '...' : ''}</td>
+                    <td>${q.maChuong}</td>
+                    <td>
+                        <button onclick="deleteQuestion(${q.maCauHoi})" class="action-btn delete-btn">Xóa</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterQuestions() {
+            const searchText = document.getElementById("qSearch").value.toLowerCase();
+            const chapterId = document.getElementById("qFilterChapter").value;
+            
+            const filtered = allQuestions.filter(q => {
+                const matchSearch = q.noiDung.toLowerCase().includes(searchText);
+                const matchChapter = !chapterId || q.maChuong == chapterId;
+                return matchSearch && matchChapter;
+            });
+            renderQuestions(filtered);
+        }
+
+        async function deleteQuestion(qId) {
+            if (!confirm("Bạn có chắc chắn muốn xóa câu hỏi này?")) return;
+            const adminId = document.cookie.split('; ').find(row => row.startsWith('user_id=')).split('=')[1];
+            
+            try {
+                const response = await fetch(`/admin/questions/${qId}?admin_id=${adminId}`, { method: 'DELETE' });
+                const data = await response.json();
+                if (data.status === "success") {
+                    allQuestions = allQuestions.filter(q => q.maCauHoi !== qId);
+                    filterQuestions();
+                }
+            } catch (e) { alert("Lỗi khi xóa!"); }
+        }
+
+        // Chạy khi load trang
+        loadQuestions();
+
+        /* LOGIC MENU NGƯỜI DÙNG */
+        document.querySelector(".user").addEventListener("click", function(e) {
+            e.stopPropagation();
+            const menu = document.getElementById("user-menu");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        });
+
+        document.addEventListener("click", function() {
+            const menu = document.getElementById("user-menu");
+            if (menu) menu.style.display = "none";
+        });
+
+        function goProfile() { window.location.href = "/profile"; }
+        function logout() {
+            document.cookie = "user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>
