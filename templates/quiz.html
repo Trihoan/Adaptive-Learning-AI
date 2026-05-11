@@ -30,8 +30,7 @@
     </div>
 
     <div class="quiz-container">
-        <form id="quizForm" method="POST" action="/result" style="display:flex; gap:40px; width:100%;">
-            
+        <form id="quizForm" method="POST" action="/result">            
             <input type="hidden" name="topic" value="{{ topic }}">
             <input type="hidden" id="time_taken" name="time_taken" value="0">
             <input type="hidden" name="question_ids" value="{{ questions | map(attribute='id') | list | join(',') }}">
@@ -123,57 +122,80 @@
             return answers;
         }
 
-        function saveDraft() {
+        async function saveDraft() {
             if (isSubmitting) return;
             if (!questions.length) return;
 
             const draft = {
                 topic: currentTopic,
-                questionIds: questions.map(q => q.id),
+                question_ids: questions.map(q => q.id),
                 answers: getSelectedAnswers(),
-                secondsElapsed: secondsElapsed,
-                currentQuestion: currentQuestion,
-                updatedAt: new Date().toISOString()
+                seconds_elapsed: secondsElapsed,
+                current_question: currentQuestion
             };
-            localStorage.setItem(draftKey, JSON.stringify(draft));
+            
+            // 1. Lưu local (dự phòng)
+            localStorage.setItem(draftKey, JSON.stringify({...draft, updatedAt: new Date().toISOString()}));
+            
+            // 2. Đồng bộ lên Cloud (Server)
+            try {
+                await fetch("/api/exams/draft/save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(draft)
+                });
+            } catch (e) { console.error("Cloud Sync Error:", e); }
         }
 
-        function restoreDraft() {
+        async function restoreDraft() {
             try {
-                const draft = JSON.parse(localStorage.getItem(draftKey) || "null");
-                if (!draft || !Array.isArray(draft.questionIds)) return;
+                // Ưu tiên lấy từ Cloud để đồng bộ giữa các trình duyệt
+                const response = await fetch("/api/exams/draft/get/" + encodeURIComponent(currentTopic));
+                const cloudRes = await response.json();
+                
+                let draft = null;
+                if (cloudRes.status === "success") {
+                    draft = cloudRes.data;
+                } else {
+                    // Nếu không có trên cloud hoặc lỗi, thử lấy từ local
+                    draft = JSON.parse(localStorage.getItem(draftKey) || "null");
+                }
 
-                const currentIds = questions.map(q => String(q.id)).join(",");
-                const draftIds = draft.questionIds.map(String).join(",");
-                if (currentIds !== draftIds) return;
+                if (!draft || !Array.isArray(draft.question_ids)) return;
 
-                secondsElapsed = Number(draft.secondsElapsed || 0);
+                // Đồng bộ thời gian và câu hỏi hiện tại
+                secondsElapsed = Number(draft.seconds_elapsed || 0);
                 timeTakenInput.value = secondsElapsed;
+                currentQuestion = Number(draft.current_question || 1);
 
+                // Khôi phục các đáp án đã chọn
                 Object.entries(draft.answers || {}).forEach(([name, value]) => {
                     const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
-                    if (!radio) return;
-
-                    radio.checked = true;
-                    const idx = radio.getAttribute('data-idx');
-                    const box = document.getElementById("box" + idx);
-                    if (box) {
-                        box.style.background = "#4CAF50";
-                        box.style.color = "white";
+                    if (radio) {
+                        radio.checked = true;
+                        const idx = radio.getAttribute('data-idx');
+                        const box = document.getElementById("box" + idx);
+                        if (box) {
+                            box.style.background = "#4CAF50";
+                            box.style.color = "white";
+                        }
                     }
                 });
 
-                currentQuestion = Number(draft.currentQuestion || 1);
-            } catch (e) {}
+                showQuestion(currentQuestion);
+            } catch (e) { console.error("Restore Draft Error:", e); }
         }
 
+        // Tăng tần suất lưu nháp hoặc lưu khi có thay đổi
         const timerInterval = setInterval(() => {
             secondsElapsed++;
             let minutes = Math.floor(secondsElapsed / 60);
             let seconds = secondsElapsed % 60;
             timerElement.innerHTML = (minutes < 10 ? '0' : '') + minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
             timeTakenInput.value = secondsElapsed;
-            saveDraft();
+            
+            // Cứ mỗi 30s đồng bộ lên cloud 1 lần khi đang làm bài
+            if (secondsElapsed % 30 === 0) saveDraft();
         }, 1000);
 
         // 3. XỬ LÝ HIỂN THỊ CÂU HỎI
@@ -249,6 +271,8 @@
         }
 
         function logout() {
+            // Xóa cookie, xóa bộ nhớ tạm và quay về trang login
+            localStorage.clear();
             document.cookie = "user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             window.location.href = "/";
         }

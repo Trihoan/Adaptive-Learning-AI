@@ -47,3 +47,16 @@ class QuizResultResponse(BaseModel):
     total_questions: int
     correct_answers: int
     score: float
+
+class QuizDraftSchema(BaseModel):
+    topic: str
+    question_ids: List[int]
+    answers: dict
+    seconds_elapsed: int
+    current_question: int
+
+class QuizDraftResponse(QuizDraftSchema):
+    maSV: str
+    updated_at: datetime
+    class Config:
+        from_attributes = True

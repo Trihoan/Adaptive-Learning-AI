@@ -181,13 +181,32 @@ th {
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-.metric-item b {
-    font-size: 20px;
-    color: #2e7d32;
-    display: block;
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+    .admin-container {
+        width: 95%;
+        padding: 10px;
+        margin: 10px auto;
+    }
+
+    /* Force table to be scrollable horizontally */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .ai-card {
+        flex-direction: column;
+    }
+
+    .metric-box {
+        grid-template-columns: 1fr;
+    }
+
+    .form-container {
+        width: 90%;
+        margin: 20px auto;
+        padding: 15px;
+    }
 }
-
-
-/* STATUS COLORS */
-.text-success { color: #2e7d32 !important; }
-.text-danger { color: #f44336 !important; }

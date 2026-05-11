@@ -56,6 +56,17 @@
     font-weight: bold;
 }
 
-.back-btn:hover {
-    background: #c4001d;
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+    .profile-container {
+        width: 90%;
+        margin: 20px auto;
+        padding: 15px;
+    }
+
+    .info-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
 }

@@ -51,3 +51,15 @@ class Answer(Base):
 
     question = relationship("Question", back_populates="answers")
     results = relationship("StudyResult", back_populates="chosen_answer")
+
+class QuizDraft(Base):
+    __tablename__ = "quiz_drafts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    maSV = Column(String(20, collation='utf8mb4_general_ci'), ForeignKey("nguoihoc.maSV", ondelete="CASCADE"))
+    topic = Column(String(100))
+    question_ids = Column(Text) # Comma separated
+    answers = Column(Text) # JSON string
+    seconds_elapsed = Column(Integer, default=0)
+    current_question = Column(Integer, default=1)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

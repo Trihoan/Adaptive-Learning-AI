@@ -110,7 +110,8 @@
         }
 
         function logout() {
-            // Xóa cookie và quay về trang login
+            // Xóa cookie, xóa bộ nhớ tạm và quay về trang login
+            localStorage.clear();
             document.cookie = "user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             window.location.href = "/";
         }
@@ -130,11 +131,39 @@
         const dynamicCourses = JSON.parse(document.getElementById('dynamic-courses').textContent || '{}');
         const dbStats = JSON.parse(document.getElementById('db-stats').textContent || '{}');
         const draftPrefix = "alas_quiz_draft_";
+        let cloudDrafts = {}; // Lưu trữ bản nháp từ server
+
+        async function loadCloudDrafts() {
+            try {
+                // Ta có thể tạo 1 API lấy tất cả draft của user hoặc lấy từng cái
+                // Để đơn giản, ta sẽ lấy danh sách topic từ dynamicCourses và fetch
+                const topics = [];
+                Object.values(dynamicCourses).forEach(course => {
+                    course.forEach(ex => topics.push(ex.topic));
+                });
+
+                // Gọi đồng thời để tối ưu
+                const promises = topics.map(async (topic) => {
+                    const res = await fetch("/api/exams/draft/get/" + encodeURIComponent(topic));
+                    const data = await res.json();
+                    if (data.status === "success") {
+                        cloudDrafts[topic] = data.data;
+                    }
+                });
+                await Promise.all(promises);
+                
+                // Sau khi load xong cloud drafts, render lại giao diện
+                showChapters(getActiveCourse());
+            } catch (e) { console.error("Load Cloud Drafts Error:", e); }
+        }
 
         function getDraft(topic) {
+            // Ưu tiên bản nháp từ Cloud (Cross-browser)
+            if (cloudDrafts[topic]) return cloudDrafts[topic];
+
             try {
                 const draft = JSON.parse(localStorage.getItem(draftPrefix + topic) || "null");
-                if (!draft || !Array.isArray(draft.questionIds) || draft.questionIds.length === 0) return null;
+                if (!draft || (!Array.isArray(draft.questionIds) && !Array.isArray(draft.question_ids))) return null;
                 return draft;
             } catch (e) {
                 return null;
@@ -143,6 +172,8 @@
 
         function clearDraft(topic) {
             localStorage.removeItem(draftPrefix + topic);
+            // Xóa cả trên Cloud
+            fetch("/api/exams/draft/delete/" + encodeURIComponent(topic), { method: "DELETE" });
         }
 
         function escapeTopic(topic) {
@@ -168,7 +199,9 @@
                 let action = "";
                 if (draft) {
                     let answeredCount = draft.answers ? Object.keys(draft.answers).length : 0;
-                    let totalCount = draft.questionIds.length;
+                    let qids = draft.question_ids || draft.questionIds || [];
+                    let totalCount = qids.length;
+                    
                     action = `
                         <div class="progress-box">${answeredCount}/${totalCount}</div>
                         <button class="continue-btn" onclick="continueQuiz('${ex.topic}')">Tiếp tục</button>
@@ -210,12 +243,15 @@
                 goQuiz(topic);
                 return;
             }
-            window.location.href = "/quiz?topic=" + escapeTopic(topic) + "&qids=" + encodeURIComponent(draft.questionIds.join(","));
+            const qids = draft.question_ids || draft.questionIds || [];
+            window.location.href = "/quiz?topic=" + escapeTopic(topic) + "&qids=" + encodeURIComponent(qids.join(","));
         }
 
         function restartQuiz(topic) {
-            clearDraft(topic);
-            goQuiz(topic);
+            if (confirm("Bạn có chắc chắn muốn làm lại từ đầu? Mọi tiến trình cũ sẽ bị xóa.")) {
+                clearDraft(topic);
+                goQuiz(topic);
+            }
         }
 
         function renderSubjects() {
@@ -234,8 +270,11 @@
             renderSubjects();
             const firstCourse = Object.keys(dynamicCourses)[0] || "TTHCM";
             showChapters(firstCourse); 
+            loadCloudDrafts(); // Gọi đồng bộ từ server
         }
-        window.addEventListener("focus", function () { showChapters(getActiveCourse()); });
+        window.addEventListener("focus", function () { 
+            loadCloudDrafts(); // Cập nhật lại mỗi khi quay lại tab
+        });
     </script>
 
 </body>

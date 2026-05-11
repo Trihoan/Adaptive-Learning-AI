@@ -52,9 +52,13 @@ body {
 /* MAIN LAYOUT */
 
 .quiz-container {
+    padding: 40px;
+}
+
+#quizForm {
     display: flex;
     gap: 40px;
-    padding: 40px;
+    width: 100%;
 }
 
 
@@ -171,13 +175,22 @@ body {
     }
 
     .quiz-container {
-        flex-direction: column-reverse;
         padding: 15px;
+    }
+
+    #quizForm {
+        flex-direction: column; /* Câu hỏi trên, danh sách dưới */
         gap: 20px;
     }
 
     .quiz-right {
         width: 100%;
+        order: 2; /* Đảm bảo danh sách ở dưới */
+    }
+
+    .quiz-left {
+        width: 100%;
+        order: 1; /* Câu hỏi ở trên */
     }
 
     .quiz-title {
@@ -198,9 +211,15 @@ body {
     }
 
     .question-grid {
-        grid-template-columns: repeat(8, 1fr);
+        grid-template-columns: repeat(8, 1fr); /* Tăng số cột để ô nhỏ lại */
+        gap: 5px;
     }
     
+    .qbox {
+        padding: 5px;
+        font-size: 12px;
+    }
+
     .submit-btn {
         width: 100%;
         padding: 15px;

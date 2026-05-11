@@ -163,6 +163,31 @@ ul {
     padding-left: 0;
 }
 
-ul li {
-    margin-bottom: 8px;
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+    .header {
+        padding: 10px 15px;
+    }
+
+    .container {
+        width: 95%;
+        margin: 15px auto;
+    }
+
+    .title {
+        font-size: 20px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    .status-badge {
+        font-size: 14px;
+    }
+
+    .start-btn {
+        width: 100%;
+        padding: 15px;
+    }
 }
