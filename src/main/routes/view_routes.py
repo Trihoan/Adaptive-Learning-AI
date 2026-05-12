@@ -142,7 +142,7 @@ async def quiz_page(
             questions = []
 
     if not questions:
-        questions = quiz_service.get_questions_by_topic(topic)
+        questions = quiz_service.get_questions_by_topic(topic, user_id=user_id)
     
     topic_map = {
         "Chương 1": "Chương 1",
@@ -182,9 +182,12 @@ async def process_result(
 
     # Lấy danh sách ID câu hỏi từ form để giữ đúng thứ tự và đúng bộ câu hỏi đã làm
     question_ids_str = form_data.get("question_ids")
-    if question_ids_str:
-        q_ids = [int(x) for x in question_ids_str.split(",")]
-        answers = quiz_service.get_correct_answers_by_ids(q_ids)
+    if question_ids_str and question_ids_str.strip():
+        try:
+            q_ids = [int(x) for x in question_ids_str.split(",") if x.strip()]
+            answers = quiz_service.get_correct_answers_by_ids(q_ids)
+        except ValueError:
+            answers = quiz_service.get_correct_answers_for_topic(topic)
     else:
         answers = quiz_service.get_correct_answers_for_topic(topic)
 
@@ -203,40 +206,52 @@ async def process_result(
     total = len(answers) if answers else 3
     score_rate = (score / total) * 10 if total > 0 else 0
     
+    # Xác định các chủ đề yếu (làm sai nhiều nhất)
+    weak_topics = []
+    topic_errors = {}
+    for item in result_data:
+        if not item["correct"]:
+            t = item["topic"]
+            topic_errors[t] = topic_errors.get(t, 0) + 1
+    
+    # Sắp xếp các chủ đề yếu nhất lên đầu
+    sorted_weak = sorted(topic_errors.items(), key=lambda x: x[1], reverse=True)
+    weak_topics = [t[0] for t in sorted_weak]
+
     ai_rec = ai_service.get_recommendation(
         math_score=score_rate, 
         prog_score=user_obj.avg_score if user_obj and user_obj.avg_score else score_rate,
         study_hours=study_hours,
-        video_rate=0.8
+        video_rate=0.8,
+        weak_topics=weak_topics
     )
 
     # LƯU KẾT QUẢ VÀO DATABASE
     if user_id:
-        from src.main.domain.models import Exam, StudyResult
+        from src.main.domain.models import Exam, StudyResult, Chapter as ChapterModel
         from datetime import datetime, timedelta
 
-        # 1. Lưu Exam (baikiemtra)
-        # Lấy chapter_id dựa trên topic thực tế
+        # 1. Tìm chapter_id linh hoạt hơn
+        chapter_id = None
+        # Thử tìm chính xác trong map
         topic_to_id = {
-            # CNXHKH
-            "Chương 1": 1, "Chương 2": 2, "Chương 3": 3, "Chương 4": 4, 
-            "Chương 5": 5, "Chương 6": 6, "Chương 7": 7,
             "Tổng hợp 1": 201, "Tổng hợp 2": 203, "Tổng hợp 3": 204,
-            
-            # TTHCM
-            "TTHCM_Chương 1": 8, "TTHCM_Chương 2": 9, "TTHCM_Chương 3": 10,
-            "TTHCM_Chương 4": 11, "TTHCM_Chương 5": 12,
             "Tổng hợp TTHCM 1": 202, "Tổng hợp TTHCM 2": 205, "Tổng hợp TTHCM 3": 206, "Tổng hợp TTHCM 4": 207
         }
-        
-        # Nếu topic thuộc CNXHKH (có thể phân biệt qua logic khác, ở đây tạm map cứng hoặc dựa vào context)
-        # Ở frontend home.html, ta đang dùng "Chương 1" chung cho cả 2 môn. 
-        # Để chính xác hơn, ta nên gửi kèm Course ID từ frontend. 
-        # Tạm thời nếu là Chương 1-3 thì map vào TTHCM (8,9,10) như yêu cầu mới nhất.
-        
         chapter_id = topic_to_id.get(topic)
-        
-        # Fallback nếu không map được
+
+        if not chapter_id:
+            # Thử tìm trong DB theo tên
+            ch_obj = db.query(ChapterModel).filter(ChapterModel.tenChuong == topic).first()
+            if ch_obj:
+                chapter_id = ch_obj.maChuong
+            else:
+                # Thử tìm LIKE
+                ch_obj = db.query(ChapterModel).filter(ChapterModel.tenChuong.like(f"%{topic}%")).first()
+                if ch_obj:
+                    chapter_id = ch_obj.maChuong
+
+        # Fallback cuối cùng: lấy từ câu hỏi đầu tiên
         if not chapter_id:
             first_q_key = list(answers.keys())[0] if answers else None
             chapter_id = answers[first_q_key]["chapter_id"] if first_q_key else 1
@@ -396,6 +411,61 @@ async def update_profile_email(
     user.email = email
     db.commit()
     return RedirectResponse(url="/profile?saved=1", status_code=303)
+
+@router.get("/competency-map", response_class=HTMLResponse)
+async def competency_map_page(
+    request: Request,
+    user_id: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    if not user_id:
+        return RedirectResponse(url="/")
+        
+    fullname = get_fullname(db, user_id)
+    
+    # TỰ ĐỘNG CẬP NHẬT BIỂU ĐỒ AI CHO SINH VIÊN
+    ai_chart_file = "ai_clusters.png"
+    try:
+        from src.main.ai.training.ai_trainer import train_and_evaluate
+        ai_chart_file = train_and_evaluate(user_id) 
+    except Exception as e:
+        print(f"Lỗi tự động cập nhật AI: {e}")
+
+    # Đọc chỉ số AI từ file
+    ai_metrics = {
+        "accuracy": 0, 
+        "precision": 0, 
+        "clusters": 0, 
+        "status": "Chưa có dữ liệu",
+        "last_train": "Chưa xác định",
+        "class_name": "text-danger",
+        "chart_file": ai_chart_file
+    }
+    try:
+        import os
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        file_path = os.path.join(base_dir, 'models', 'ai_metrics.json')
+        
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                ai_metrics.update(data)
+                if ai_metrics["accuracy"] > 70:
+                    ai_metrics["class_name"] = "text-success"
+                else:
+                    ai_metrics["class_name"] = "text-danger"
+    except Exception as e:
+        print(f"Lỗi đọc file AI metrics: {e}")
+
+    return templates.TemplateResponse(
+        "competency_map.html", 
+        {
+            "request": request, 
+            "user_fullname": fullname,
+            "ai_metrics": ai_metrics,
+            "is_admin": check_admin(db, user_id)
+        }
+    )
 
 # --- ADMIN VIEWS ---
 

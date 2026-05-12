@@ -25,6 +25,9 @@
             {{ user_fullname }} <i class="fa-regular fa-circle-user"></i>
              <div id="user-menu" class="user-menu">
                 <div class="menu-item" onclick="goProfile()">Thông tin cá nhân</div>
+                <div class="menu-item menu-item-special" onclick="location.href='/competency-map'">
+                    Bản đồ năng lực
+                </div>
                 <div class="menu-item logout" onclick="logout()">Đăng xuất</div>
             </div>
         </div>
@@ -102,9 +105,8 @@
 
             if (Object.keys(weak).length > 0) {
                 for (let topic in weak) {
-                    let topicName = topic === "Chương 1" ? "Cơ sở hình thành TTHCM" : 
-                                   topic === "Chương 2" ? "Độc lập dân tộc & CNXH" : 
-                                   topic === "Chương 3" ? "Đảng CS & Nhà nước" : topic;
+                    // Mapping đồng bộ với QuizService.py
+                    let topicName = topic;
                     
                     analysisHTML += `<li class="weak">Bạn cần cải thiện: ` + topicName + `</li>`;
                     pathHTML += `<div class="path-step">Ôn tập chương: ` + topicName + `</div>`;

@@ -43,6 +43,7 @@ def _build_tidb_uri():
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "hoc-tap-ai-bi-mat-2026"
+    GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY") # Sẽ được lấy từ file .env
 
     # Priority: explicit DATABASE_URL, local TiDB settings, then local XAMPP MySQL.
     SQLALCHEMY_DATABASE_URI = (

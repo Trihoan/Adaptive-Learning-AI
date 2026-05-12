@@ -87,34 +87,121 @@ class QuizService:
             score=score
         )
 
-    def get_questions_by_topic(self, topic: str) -> List[Dict[str, Any]]:
-        from src.main.domain.models import Chapter, Course
+    def get_questions_by_topic(self, topic: str, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        from src.main.domain.models import Chapter, Course, User, Question
+        
+        print(f"🔍 Searching questions for topic: '{topic}'")
+        
+        # Làm sạch topic: loại bỏ các ký tự đặc biệt, khoảng trắng thừa
+        clean_topic = topic.strip()
         
         # 1. Tìm chương dựa trên tên (topic)
-        chapter = self.db.query(Chapter).filter(Chapter.tenChuong == topic).first()
+        # Thử tìm chính xác
+        chapter = self.db.query(Chapter).filter(Chapter.tenChuong == clean_topic).first()
+        
         if not chapter:
+            # Thử tìm theo LIKE (chứa topic)
+            chapter = self.db.query(Chapter).filter(Chapter.tenChuong.like(f"%{clean_topic}%")).first()
+        
+        if not chapter and ":" in clean_topic:
+            # Thử lấy phần sau dấu hai chấm
+            sub_topic = clean_topic.split(":")[-1].strip()
+            chapter = self.db.query(Chapter).filter(Chapter.tenChuong.like(f"%{sub_topic}%")).first()
+
+        if not chapter:
+            # Thử tìm theo mapping rút gọn (fallback cho recommend.html)
+            short_maps = {
+                # CNXHKH
+                "Nhập môn CNXHKH": "Nhập môn",
+                "Sứ mệnh giai cấp công nhân": "Sứ mệnh lịch sử",
+                "Thời kỳ quá độ": "thời kỳ quá độ",
+                "Dân chủ XHCN và Nhà nước": "Dân chủ",
+                "Cơ cấu xã hội - giai cấp": "Cơ cấu xã hội",
+                "Dân tộc và tôn giáo": "Dân tộc",
+                "Vấn đề gia đình": "gia đình",
+                # TTHCM
+                "Cơ sở hình thành TTHCM": "Cơ sở hình thành",
+                "Độc lập dân tộc và CNXH": "Độc lập dân tộc",
+                "Đảng Cộng sản và Nhà nước": "Đảng Cộng sản",
+                "Đại đoàn kết dân tộc": "đại đoàn kết",
+                "Văn hóa, đạo đức, con người": "văn hóa"
+            }
+            if clean_topic in short_maps:
+                chapter = self.db.query(Chapter).filter(Chapter.tenChuong.like(f"%{short_maps[clean_topic]}%")).first()
+
+        if not chapter:
+            # Thử tìm mờ hơn nữa: Lấy 3 từ đầu tiên của topic để tìm
+            words = clean_topic.split()
+            if len(words) >= 2:
+                search_term = " ".join(words[:3])
+                chapter = self.db.query(Chapter).filter(Chapter.tenChuong.like(f"%{search_term}%")).first()
+
+        if not chapter:
+            # Thử tìm theo số chương (Nếu topic là "Chương 1", "Chương 2"...)
+            import re
+            match = re.search(r'Chương\s+(\d+)', clean_topic, re.IGNORECASE)
+            if match:
+                stt_val = int(match.group(1))
+                chapter = self.db.query(Chapter).filter(Chapter.stt == stt_val).first()
+
+        if not chapter:
+            print(f"❌ Không tìm thấy chương cho topic: '{clean_topic}'")
             return []
+
+        print(f"✅ Found chapter: {chapter.maChuong} - {chapter.tenChuong}")
+
+        # 2. Xác định trình độ người dùng để lọc câu hỏi (Adaptive)
+        user_level = 1
+        if user_id:
+            user = self.db.query(User).filter(User.maSV == user_id).first()
+            if user:
+                if user.avg_score >= 8:
+                    user_level = 3
+                elif user.avg_score >= 5:
+                    user_level = 2
+                else:
+                    user_level = 1
+        
+        print(f"🎯 Adaptive Level: {user_level} for User: {user_id}")
 
         all_questions = []
         try:
             if chapter.stt >= 100:
-                # ĐỀ TỔNG HỢP: Lấy từ tất cả các chương của môn học đó
+                # ĐỀ TỔNG HỢP
                 course_chapters = self.db.query(Chapter).filter(
                     Chapter.monhoc_id == chapter.monhoc_id,
-                    Chapter.stt < 100 # Chỉ lấy từ các chương kiến thức
+                    Chapter.stt < 100
                 ).all()
                 chapter_ids = [c.maChuong for c in course_chapters]
                 
-                db_questions = self.db.query(Question).filter(Question.maChuong.in_(chapter_ids)).all()
+                db_questions = self.db.query(Question).filter(
+                    Question.maChuong.in_(chapter_ids),
+                    Question.doKho == user_level
+                ).all()
+                
+                if len(db_questions) < 20:
+                    db_questions = self.db.query(Question).filter(Question.maChuong.in_(chapter_ids)).all()
+                
                 limit = 60
             else:
-                # ĐỀ CHƯƠNG: Chỉ lấy từ chương đó
-                db_questions = self.repo.get_questions_by_chapter(chapter.maChuong)
+                # ĐỀ CHƯƠNG
+                db_questions = self.db.query(Question).filter(
+                    Question.maChuong == chapter.maChuong,
+                    Question.doKho == user_level
+                ).all()
+
+                if len(db_questions) < 5:
+                    db_questions = self.db.query(Question).filter(Question.maChuong == chapter.maChuong).all()
+                
                 limit = 40
+
+            print(f"📝 Total questions found: {len(db_questions)}")
 
             if db_questions:
                 for q in db_questions:
                     ans_list = q.answers 
+                    if not ans_list: continue
+                    
                     q_data = {
                         "id": str(q.maCauHoi),
                         "text": q.noiDung,
@@ -128,15 +215,17 @@ class QuizService:
                     all_questions.append(q_data)
             
             if not all_questions:
-                return [{ "id": "sample", "text": "Đang cập nhật câu hỏi cho chương này...", "A": "Đang cập nhật", "correct": "A", "chapter_id": chapter.maChuong }]
+                print("⚠️ No valid questions with answers found!")
+                return [{ "id": "sample", "text": f"Đang cập nhật câu hỏi cho chương '{chapter.tenChuong}'...", "A": "Vui lòng quay lại sau", "correct": "A", "chapter_id": chapter.maChuong }]
 
-            # Trộn và giới hạn
             import random
             random.shuffle(all_questions)
             return all_questions[:limit] 
 
         except Exception as e:
-            print(f"Lỗi QuizService: {e}")
+            print(f"🔥 Lỗi nghiêm trọng trong QuizService: {e}")
+            import traceback
+            traceback.print_exc()
             return []
 
     def _get_correct_label(self, ans_list: List) -> str:

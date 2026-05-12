@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bản đồ năng lực AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/AI.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/competency_map.css') }}">
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+             <a href="{{ url_for('home_page') }}">Adaptive Learning AI</a>
+        </div>
+        <div class="user">
+            {{ user_fullname }}
+            <i class="fa-regular fa-circle-user avatar"></i>
+            <div id="user-menu" class="user-menu">
+                <div class="menu-item" onclick="goProfile()">Thông tin cá nhân</div>
+                <div class="menu-item menu-item-special" onclick="location.href='/competency-map'">
+                    Bản đồ năng lực
+                </div>
+                {% if is_admin %}
+                <div class="menu-item menu-item-admin" onclick="location.href='/admin/users'">Quản lý</div>
+                {% endif %}
+                <div class="menu-item logout" onclick="logout()">Đăng xuất</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="competency-container">
+        <div class="ai-analytics">
+            <h2 class="ai-title">🤖 Bản đồ đánh giá năng lực AI</h2>
+            
+            <!-- TOP SECTION: CHART & EXPLANATION SIDE BY SIDE -->
+            <div class="ai-top-layout">
+                <div class="ai-chart">
+                    <img src="{{ url_for('static', path='img/' + ai_metrics.chart_file) }}?v={{ ai_metrics.last_train }}" alt="AI Clusters Chart">
+                    <p class="ai-chart-caption">
+                        Biểu đồ phân cụm năng lực sinh viên toàn hệ thống. <br>
+                        <b class="star-highlight">★ Ngôi sao đỏ chính là vị trí năng lực của bạn hiện tại.</b>
+                    </p>
+                </div>
+                
+                <div class="explanation">
+                    <h4><i class="fa-solid fa-circle-info"></i> Giải thích chi tiết bản đồ</h4>
+                    
+                    <div class="explanation-item">
+                        <b>1. Các trục tọa độ:</b>
+                        <ul>
+                            <li><b>Trục ngang (Kiến thức):</b> Phản ánh điểm số trung bình. Càng về bên phải, điểm số của bạn càng cao.</li>
+                            <li><b>Trục dọc (Nỗ lực):</b> Tổng hợp từ thời gian học và tỷ lệ hoàn thành bài tập. Càng lên cao, bạn càng dành nhiều thời gian và tâm huyết.</li>
+                        </ul>
+                    </div>
+
+                    <div class="explanation-item" style="margin-top: 15px;">
+                        <b>2. Phân loại nhóm năng lực (Màu sắc):</b>
+                        <div class="group-details">
+                            <div class="group-item" style="border-left: 4px solid #fde725; background: #fffde7; padding: 10px; margin: 8px 0; border-radius: 4px;">
+                                <b style="color: #af9400;">● Nhóm Giỏi (Vàng/Xanh lá sáng):</b> Sinh viên có điểm số cao và thời gian học tập ổn định. Đây là nhóm đã làm chủ được kiến thức.
+                            </div>
+                            <div class="group-item" style="border-left: 4px solid #21908d; background: #e0f2f1; padding: 10px; margin: 8px 0; border-radius: 4px;">
+                                <b style="color: #00695c;">● Nhóm Khá (Xanh ngọc):</b> Sinh viên có mức điểm trung bình khá, nỗ lực ở mức vừa phải. Cần bứt phá hơn trong việc luyện tập để tiến tới nhóm Giỏi.
+                            </div>
+                            <div class="group-item" style="border-left: 4px solid #440154; background: #f3e5f5; padding: 10px; margin: 8px 0; border-radius: 4px;">
+                                <b style="color: #4a148c;">● Nhóm Cần hỗ trợ (Tím/Xanh đậm):</b> Sinh viên có điểm số chưa cao hoặc mới bắt đầu tham gia hệ thống. AI khuyến nghị bạn nên xem lại bài giảng và làm thêm bài tập cơ bản.
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 15px; font-weight: bold; color: #d32f2f; font-size: 14px;">
+                        <i class="fa-solid fa-star"></i> Vị trí ngôi sao đỏ của bạn sẽ thay đổi theo thời gian thực dựa trên sự tiến bộ của bạn!
+                    </p>
+                </div>
+            </div>
+
+            <!-- BOTTOM SECTION: SYSTEM METRICS -->
+            <div class="ai-bottom-metrics">
+                <h4>Chỉ số đánh giá hệ thống</h4>
+                <div class="metric-box">
+                    <div class="metric-item">
+                        <span>Độ chính xác mô hình</span>
+                        <b>{{ ai_metrics.accuracy }}%</b>
+                    </div>
+                    <div class="metric-item metric-blue">
+                        <span>Nhóm năng lực</span>
+                        <b>{{ ai_metrics.clusters }} Cụm</b>
+                    </div>
+                    <div class="metric-item metric-orange">
+                        <span>Độ tin cậy</span>
+                        <b>{{ ai_metrics.precision }}</b>
+                    </div>
+                    <div class="metric-item metric-purple">
+                        <span>Trạng thái mô hình</span>
+                        <b class="{{ ai_metrics.class_name }}">{{ ai_metrics.status }}</b>
+                    </div>
+                </div>
+
+                <div class="ai-footer">
+                    <span><i class="fa-solid fa-clock-rotate-left"></i> Cập nhật lần cuối: {{ ai_metrics.last_train }}</span>
+                    <span><i class="fa-solid fa-circle-info"></i> Dữ liệu được tính toán dựa trên: Điểm số, Thời gian học, và Tỷ lệ hoàn thành bài giảng.</span>
+                </div>
+            </div>
+
+            <div class="btn-home-container">
+                <a href="/home" class="btn-home">Quay lại trang chủ</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* LOGIC MENU NGƯỜI DÙNG */
+        document.querySelector(".user").addEventListener("click", function(e) {
+            e.stopPropagation();
+            const menu = document.getElementById("user-menu");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        });
+
+        document.addEventListener("click", function() {
+            const menu = document.getElementById("user-menu");
+            if (menu) menu.style.display = "none";
+        });
+
+        function goProfile() { window.location.href = "/profile"; }
+        function logout() {
+            localStorage.clear();
+            document.cookie = "user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>

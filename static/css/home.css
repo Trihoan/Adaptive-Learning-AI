@@ -72,6 +72,16 @@ body {
     background: #f5f5f5;
 }
 
+.menu-item-special {
+    color: #1a237e !important;
+    font-weight: bold;
+}
+
+.menu-item-admin {
+    color: blue !important;
+    font-weight: bold;
+}
+
 .logout {
     color: red;
 }
