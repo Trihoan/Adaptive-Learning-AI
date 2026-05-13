@@ -51,7 +51,9 @@ async def home_page(request: Request, user_id: Optional[str] = Cookie(None), db:
     # 1. Lấy danh sách môn học và chương từ DB
     db_courses = db.query(Course).all()
     dynamic_courses = {}
+    course_names = {}
     for c in db_courses:
+        course_names[c.maMonHoc] = c.tenMonHoc
         db_chapters = db.query(Chapter).filter(Chapter.monhoc_id == c.id).order_by(Chapter.stt).all()
         dynamic_courses[c.maMonHoc] = []
         for ch in db_chapters:
@@ -95,6 +97,7 @@ async def home_page(request: Request, user_id: Optional[str] = Cookie(None), db:
             "user_fullname": fullname,
             "db_stats": stats,
             "dynamic_courses": dynamic_courses,
+            "course_names": course_names,
             "is_admin": check_admin(db, user_id)
         }
     )

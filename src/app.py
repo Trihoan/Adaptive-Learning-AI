@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 import json
+from src.main.database import SessionLocal
+from src.main.domain.models import Course, Chapter
 
 app = Flask(__name__)
 
@@ -35,7 +37,32 @@ def register():
 # ================= HOME =================
 @app.route("/home")
 def home():
-    return render_template("home.html")
+    db = SessionLocal()
+    try:
+        db_courses = db.query(Course).all()
+        dynamic_courses = {}
+        course_names = {}
+        for c in db_courses:
+            course_names[c.maMonHoc] = c.tenMonHoc
+            db_chapters = db.query(Chapter).filter(Chapter.monhoc_id == c.id).order_by(Chapter.stt).all()
+            dynamic_courses[c.maMonHoc] = []
+            for ch in db_chapters:
+                dynamic_courses[c.maMonHoc].append({
+                    "title": ch.tenChuong,
+                    "topic": ch.tenChuong,
+                    "is_general": ch.stt >= 100
+                })
+        
+        return render_template(
+            "home.html",
+            dynamic_courses=dynamic_courses,
+            course_names=course_names,
+            db_stats={}, # Flask version doesn't have complex stats yet
+            user_fullname="User",
+            is_admin=False
+        )
+    finally:
+        db.close()
 
 
 # ================= COURSE =================

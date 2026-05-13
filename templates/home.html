@@ -125,6 +125,10 @@
         {{ dynamic_courses | tojson | safe }}
     </script>
 
+    <script id="course-names" type="application/json">
+        {{ course_names | tojson | safe }}
+    </script>
+
     <script id="db-stats" type="application/json">
         {{ db_stats | tojson | safe }}
     </script>
@@ -132,6 +136,7 @@
     <script>
         // Đọc dữ liệu từ backend
         const dynamicCourses = JSON.parse(document.getElementById('dynamic-courses').textContent || '{}');
+        const courseNames = JSON.parse(document.getElementById('course-names').textContent || '{}');
         const dbStats = JSON.parse(document.getElementById('db-stats').textContent || '{}');
         const draftPrefix = "alas_quiz_draft_";
         let cloudDrafts = {}; // Lưu trữ bản nháp từ server
@@ -185,7 +190,8 @@
 
         function showChapters(courseId) {
             const courseData = dynamicCourses[courseId] || [];
-            let html = `<h3>Danh sách bài luyện tập - ${courseId}</h3>`;
+            const courseName = courseNames[courseId] || courseId;
+            let html = `<h3>Danh sách bài luyện tập - ${courseName}</h3>`;
             
             if (courseData.length === 0) {
                 html += "<p style='padding: 20px; color: #666;'>Chưa có dữ liệu bài tập cho môn học này.</p>";
@@ -264,7 +270,7 @@
             subjectList.innerHTML = courseIds.map(id => `
                 <div id="${id}" class="subject" onclick="showChapters('${id}')">
                     <div class="subject-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-                    <div class="subject-title">${id === 'TTHCM' ? 'Tư tưởng Hồ Chí Minh' : (id === 'CNXHKH' ? 'Chủ nghĩa xã hội khoa học' : id)}</div>
+                    <div class="subject-title">${courseNames[id] || id}</div>
                 </div>
             `).join('');
         }
