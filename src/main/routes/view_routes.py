@@ -9,6 +9,7 @@ from src.main.services.quiz_service import QuizService
 from typing import Optional
 from urllib.parse import quote
 import json
+import os
 
 router = APIRouter(tags=["Views"])
 
@@ -423,13 +424,11 @@ async def competency_map_page(
         
     fullname = get_fullname(db, user_id)
     
-    # TỰ ĐỘNG CẬP NHẬT BIỂU ĐỒ AI CHO SINH VIÊN
-    ai_chart_file = "ai_clusters.png"
-    try:
-        from src.main.ai.training.ai_trainer import train_and_evaluate
-        ai_chart_file = train_and_evaluate(user_id) 
-    except Exception as e:
-        print(f"Lỗi tự động cập nhật AI: {e}")
+    # Kiểm tra xem có biểu đồ cá nhân hóa không, nếu không dùng chung
+    ai_chart_file = f"ai_clusters_{user_id}.png"
+    static_img_dir = os.path.join("static", "img")
+    if not os.path.exists(os.path.join(static_img_dir, ai_chart_file)):
+        ai_chart_file = "ai_clusters.png"
 
     # Đọc chỉ số AI từ file
     ai_metrics = {
@@ -442,7 +441,6 @@ async def competency_map_page(
         "chart_file": ai_chart_file
     }
     try:
-        import os
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         file_path = os.path.join(base_dir, 'models', 'ai_metrics.json')
         
@@ -450,7 +448,7 @@ async def competency_map_page(
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 ai_metrics.update(data)
-                if ai_metrics["accuracy"] > 70:
+                if ai_metrics.get("accuracy", 0) > 70:
                     ai_metrics["class_name"] = "text-success"
                 else:
                     ai_metrics["class_name"] = "text-danger"
@@ -471,7 +469,6 @@ async def competency_map_page(
 
 def check_admin(db: Session, user_id: str):
     if not user_id:
-        user_repo = UserRepository(db)
         return False
     user_repo = UserRepository(db)
     user = user_repo.find_by_id(user_id)
@@ -490,15 +487,11 @@ async def admin_users_page(request: Request, user_id: Optional[str] = Cookie(Non
     all_chapters = db.query(Chapter).all()
     all_courses = db.query(Course).all()
 
-    # TỰ ĐỘNG CẬP NHẬT BIỂU ĐỒ AI KHI VÀO TRANG ADMIN
-    # ... (rest of AI chart logic)
-    ai_chart_file = "ai_clusters.png" # File mặc định
-    try:
-        from src.main.ai.training.ai_trainer import train_and_evaluate
-        # Vẽ biểu đồ riêng cho người đang xem
-        ai_chart_file = train_and_evaluate(user_id) 
-    except Exception as e:
-        print(f"Lỗi tự động cập nhật AI: {e}")
+    # Kiểm tra biểu đồ AI
+    ai_chart_file = f"ai_clusters_{user_id}.png"
+    static_img_dir = os.path.join("static", "img")
+    if not os.path.exists(os.path.join(static_img_dir, ai_chart_file)):
+        ai_chart_file = "ai_clusters.png"
 
     # Đọc chỉ số AI thật từ file
     ai_metrics = {
@@ -508,24 +501,22 @@ async def admin_users_page(request: Request, user_id: Optional[str] = Cookie(Non
         "status": "Chưa có dữ liệu",
         "last_train": "Chưa xác định",
         "class_name": "text-danger",
-        "chart_file": ai_chart_file # Thêm tên file vào metrics
+        "chart_file": ai_chart_file
     }
     try:
-        import os
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         file_path = os.path.join(base_dir, 'models', 'ai_metrics.json')
         
-        with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            ai_metrics.update(data)
-            # Trả về tên Class thay vì mã màu
-            if ai_metrics["accuracy"] > 70:
-                ai_metrics["class_name"] = "text-success"
-            else:
-                ai_metrics["class_name"] = "text-danger"
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                ai_metrics.update(data)
+                if ai_metrics.get("accuracy", 0) > 70:
+                    ai_metrics["class_name"] = "text-success"
+                else:
+                    ai_metrics["class_name"] = "text-danger"
     except Exception as e:
         print(f"Lỗi đọc file AI metrics: {e}")
-        pass
     
     return templates.TemplateResponse(
         "admin_users.html", 

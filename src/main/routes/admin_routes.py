@@ -30,8 +30,29 @@ async def get_questions_list(
     if chapter_id:
         query = query.filter(Question.maChuong == chapter_id)
 
-    questions = query.all()
+    questions = query.order_by(Question.maCauHoi.asc()).all()
     return questions
+
+@router.post("/courses/add")
+async def add_new_course(
+    maMonHoc: str = Form(...),
+    tenMonHoc: str = Form(...),
+    user_id: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    if not check_admin(db, user_id):
+        raise HTTPException(status_code=403)
+
+    # Kiểm tra xem môn học đã tồn tại chưa
+    existing = db.query(Course).filter(Course.maMonHoc == maMonHoc).first()
+    if existing:
+        return RedirectResponse(url="/admin/users?error=course_exists", status_code=303)
+
+    new_course = Course(maMonHoc=maMonHoc, tenMonHoc=tenMonHoc)
+    db.add(new_course)
+    db.commit()
+
+    return RedirectResponse(url="/admin/users?course_status=added", status_code=303)
 
 @router.post("/questions/add")
 async def add_individual_question(
@@ -79,7 +100,7 @@ async def delete_question(
     db.delete(q)
     db.commit()
     return {"status": "success"}
-
+  
 @router.post("/general-exams/add")
 async def add_general_exam(
     course_id: str = Form(...),

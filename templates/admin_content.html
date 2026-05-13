@@ -48,13 +48,41 @@
             <div class="alert alert-success">Đã tạo đề thi tổng hợp thành công!</div>
         {% endif %}
 
+        {% if request.query_params.get('course_status') == 'added' %}
+            <div class="alert alert-success">Đã thêm môn học mới thành công!</div>
+        {% elif request.query_params.get('error') == 'course_exists' %}
+            <div class="alert alert-danger">Lỗi: Mã môn học đã tồn tại!</div>
+        {% endif %}
+
+        <!-- ADD NEW COURSE SECTION -->
+        <div class="import-section">
+            <h3><i class="fa-solid fa-folder-plus"></i> Thêm môn học mới</h3>
+            <form action="/admin/courses/add" method="POST" class="admin-grid-form">
+                <div class="form-group">
+                    <label>Mã môn học (Viết liền, không dấu)</label>
+                    <input type="text" name="maMonHoc" required placeholder="Ví dụ: TRIETHOC">
+                </div>
+                <div class="form-group">
+                    <label>Tên môn học (Đầy đủ)</label>
+                    <input type="text" name="tenMonHoc" required placeholder="Ví dụ: Triết học Mác - Lênin">
+                </div>
+                <button type="submit" class="action-btn edit-btn span-2 btn-full">
+                    Tạo môn học
+                </button>
+            </form>
+        </div>
+
         <!-- SMART IMPORT SECTION -->
         <div class="import-section">
             <h3><i class="fa-solid fa-file-import"></i> Nhập liệu thông minh (Word/Excel)</h3>
             <form action="/admin/import" method="POST" enctype="multipart/form-data" class="admin-grid-form">
                 <div class="form-group">
-                    <label>Mã môn học (Ví dụ: CNXHKH, TTHCM)</label>
-                    <input type="text" name="course_id" required placeholder="CNXHKH">
+                    <label>Môn học</label>
+                    <select name="course_id" required>
+                        {% for c in all_courses %}
+                        <option value="{{ c.maMonHoc }}">{{ c.tenMonHoc }} ({{ c.maMonHoc }})</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Tên chương (Không bắt buộc với Word)</label>

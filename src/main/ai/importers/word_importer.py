@@ -12,11 +12,11 @@ def import_from_word(file_path, course_id, default_chapter_name=None, dry_run=Fa
     - dry_run: Nếu True, chỉ in ra kết quả kiểm tra, không lưu vào DB.
     """
     if not os.path.exists(file_path):
-        print(f"❌ Không tìm thấy file: {file_path}")
+        print(f"Không tìm thấy file: {file_path}")
         return
 
     if dry_run:
-        print("🧪 [CHẾ ĐỘ CHẠY THỬ] - Dữ liệu sẽ KHÔNG được lưu vào Database.")
+        print("[CHẾ ĐỘ CHẠY THỬ] - Dữ liệu sẽ KHÔNG được lưu vào Database.")
 
     db: Session = SessionLocal()
     try:
@@ -29,7 +29,7 @@ def import_from_word(file_path, course_id, default_chapter_name=None, dry_run=Fa
                 db.add(course)
                 db.flush()
         else:
-            print(f"🔍 Kiểm tra môn học: {course_id}")
+            print(f"Kiểm tra môn học: {course_id}")
 
         # 2. Đọc file Word
         doc = Document(file_path)
@@ -47,13 +47,13 @@ def import_from_word(file_path, course_id, default_chapter_name=None, dry_run=Fa
                     db.add(current_chapter)
                     db.flush()
             else:
-                print(f"🔍 Sử dụng chương mặc định: {default_chapter_name}")
+                print(f"Sử dụng chương mặc định: {default_chapter_name}")
 
         current_q = None
         answers_list = []
         correct_label = None
 
-        print(f"📖 Đang xử lý file: {file_path}...")
+        print(f"Đang xử lý file: {file_path}...")
 
         for para in doc.paragraphs:
             text = para.text.strip()
