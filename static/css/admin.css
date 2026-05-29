@@ -313,6 +313,43 @@ th {
     color: #666;
 }
 
+/* TABS */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-weight: bold;
+    color: #666;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+    background: #f0f0f0;
+}
+
+.tab-btn.active {
+    background: #1a237e;
+    color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
 /* MOBILE RESPONSIVE */
 @media (max-width: 768px) {
     .admin-container {

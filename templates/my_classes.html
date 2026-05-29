@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lớp học của tôi</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/teacher.css') }}?v=1.1">
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+             <a href="{{ url_for('home_page') }}">Adaptive Learning AI</a>
+        </div>
+        <div class="user">
+            {{ user_fullname }}
+            <i class="fa-regular fa-circle-user avatar"></i>
+            <div id="user-menu" class="user-menu">
+                <div class="menu-item" onclick="location.href='/profile'">Thông tin cá nhân</div>
+                {% if not is_admin %}
+                <div class="menu-item menu-item-special" onclick="location.href='/competency-map'">
+                    Bản đồ năng lực
+                </div>
+                {% endif %}
+                {% if is_admin %}
+                <div class="menu-item menu-item-admin" onclick="location.href='/admin/users'">Quản lý</div>
+                {% endif %}
+                <div class="menu-item logout" onclick="logout()">Đăng xuất</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="class-list-container">
+        <div class="mb-30">
+            <h2 style="color: #1a237e;"><i class="fa-solid fa-chalkboard-user"></i> Lớp học của tôi</h2>
+            <p class="c-666">Danh sách các lớp học bạn đã tham gia.</p>
+        </div>
+
+        <div class="class-grid">
+            {% for c in joined_classes %}
+            <div class="class-card" style="cursor: default;">
+                <div class="flex-between" style="align-items: flex-start;">
+                    <h3>{{ c.tenLop }}</h3>
+                    <span class="status-badge status-pass">Đã tham gia</span>
+                </div>
+                <div class="meta">
+                    <p><i class="fa-solid fa-book"></i> Môn học: <b>{{ c.course.tenMonHoc }}</b></p>
+                    <p><i class="fa-solid fa-calendar-day"></i> Ngày tham gia: {{ c.ngayTao.strftime('%d/%m/%Y') }}</p>
+                </div>
+                
+                <div class="border-top-eee pt-15 mt-10">
+                    <strong class="fs-14" style="color: #1a237e;">Đề ôn tập:</strong>
+                    <div class="assigned-quizzes-list">
+                        {# Hiển thị các đề thi mới (Quiz model) #}
+                        {% for q in c.assigned_quizzes %}
+                        <span class="quiz-tag" onclick="goQuiz('{{ q.tenDeThi }}')" style="cursor: pointer; transition: all 0.2s; background: #e8eaf6; color: #1a237e; border-color: #c5cae9;" title="Nhấn để làm bài kiểm tra">
+                            <i class="fa-solid fa-file-signature"></i> {{ q.tenDeThi }}
+                        </span>
+                        {% endfor %}
+
+                        {# Hiển thị các đề ôn tập/chương (Chapter model) - Nếu còn dùng #}
+                        {% for q in c.quizzes %}
+                        <span class="quiz-tag" onclick="goQuiz('{{ q.tenChuong }}')" style="cursor: pointer; transition: all 0.2s;" title="Nhấn để ôn tập">
+                            <i class="fa-solid fa-circle-play"></i> {{ q.tenChuong }}
+                        </span>
+                        {% endfor %}
+
+                        {% if not c.quizzes and not c.assigned_quizzes %}
+                        <span class="fs-13 c-999" style="font-style: italic;">Chưa có đề nào được giao.</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            {% if not joined_classes %}
+            <div class="grid-3-center p-30 br-12" style="padding-top: 100px; padding-bottom: 100px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                <i class="fa-solid fa-folder-open" style="font-size: 50px; color: #ddd; margin-bottom: 20px;"></i>
+                <h3>Bạn chưa tham gia lớp học nào</h3>
+                <p class="c-666 mb-20">Hãy quét mã QR do giảng viên cung cấp để tham gia lớp và nhận các đề ôn tập riêng.</p>
+                <button class="create-btn m-auto" onclick="location.href='/home'">Quay lại trang chủ</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function goQuiz(topic) {
+            window.location.href = "/quiz?topic=" + encodeURIComponent(topic);
+        }
+
+        document.querySelector(".user").addEventListener("click", function(e) {
+            e.stopPropagation();
+            var menu = document.getElementById("user-menu");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        });
+        document.addEventListener("click", function() {
+            var menu = document.getElementById("user-menu");
+            if (menu) menu.style.display = "none";
+        });
+        function logout() {
+            localStorage.clear();
+            document.cookie = "user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>

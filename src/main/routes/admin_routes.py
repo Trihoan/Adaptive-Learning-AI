@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, Form, HTTPException, status, Cookie, UploadFile, File
+from fastapi import APIRouter, Depends, Form, HTTPException, status, Cookie, UploadFile, File, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from src.main.database import get_db
 from src.main.repositories.user_repository import UserRepository
-from src.main.domain.models import User, Question, Answer, Chapter, Course
+from src.main.domain.models import User, Question, Answer, Chapter, Course, Quiz
 from typing import Optional
 import shutil
 import os
@@ -20,6 +20,7 @@ def check_admin(db: Session, user_id: str):
 @router.get("/questions")
 async def get_questions_list(
     chapter_id: Optional[int] = None,
+    quiz_id: Optional[int] = None,
     user_id: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)
 ):
@@ -29,6 +30,8 @@ async def get_questions_list(
     query = db.query(Question)
     if chapter_id:
         query = query.filter(Question.maChuong == chapter_id)
+    if quiz_id:
+        query = query.filter(Question.maDeThi == quiz_id)
 
     questions = query.order_by(Question.maCauHoi.asc()).all()
     return questions
@@ -46,18 +49,19 @@ async def add_new_course(
     # Kiểm tra xem môn học đã tồn tại chưa
     existing = db.query(Course).filter(Course.maMonHoc == maMonHoc).first()
     if existing:
-        return RedirectResponse(url="/admin/users?error=course_exists", status_code=303)
+        return RedirectResponse(url="/admin/content?error=course_exists", status_code=303)
 
     new_course = Course(maMonHoc=maMonHoc, tenMonHoc=tenMonHoc)
     db.add(new_course)
     db.commit()
 
-    return RedirectResponse(url="/admin/users?course_status=added", status_code=303)
+    return RedirectResponse(url="/admin/content?course_status=added", status_code=303)
 
 @router.post("/questions/add")
 async def add_individual_question(
     noiDung: str = Form(...),
-    maChuong: int = Form(...),
+    maChuong: Optional[int] = Form(None),
+    maDeThi: Optional[int] = Form(None),
     ans_a: str = Form(...),
     ans_b: str = Form(...),
     ans_c: str = Form(...),
@@ -69,7 +73,13 @@ async def add_individual_question(
     if not check_admin(db, user_id):
         raise HTTPException(status_code=403)
 
-    new_q = Question(noiDung=noiDung, maChuong=maChuong, doKho=1, loaiCauHoi="single")
+    new_q = Question(
+        noiDung=noiDung, 
+        maChuong=maChuong, 
+        maDeThi=maDeThi,
+        doKho=1, 
+        loaiCauHoi="single"
+    )
     db.add(new_q)
     db.flush()
 
@@ -82,7 +92,7 @@ async def add_individual_question(
     db.add_all(answers)
     db.commit()
 
-    return RedirectResponse(url="/admin/users?q_status=added", status_code=303)
+    return RedirectResponse(url="/admin/content?q_status=added", status_code=303)
 
 @router.delete("/questions/{q_id}")
 async def delete_question(
@@ -105,6 +115,7 @@ async def delete_question(
 async def add_general_exam(
     course_id: str = Form(...),
     exam_name: str = Form(...),
+    time_limit: int = Form(60),
     user_id: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)
 ):
@@ -115,27 +126,22 @@ async def add_general_exam(
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     
-    # Tìm STT cao nhất hiện tại cho đề tổng hợp (>= 100)
-    from sqlalchemy import func
-    max_stt = db.query(func.max(Chapter.stt)).filter(Chapter.monhoc_id == course.id, Chapter.stt >= 100).scalar()
-    new_stt = (max_stt if max_stt else 99) + 1
-    
-    new_chapter = Chapter(
+    new_quiz = Quiz(
+        tenDeThi=exam_name,
         monhoc_id=course.id,
         maMonHoc=course_id,
-        tenChuong=exam_name,
-        stt=new_stt
+        thoiGianLam=time_limit
     )
-    db.add(new_chapter)
+    db.add(new_quiz)
     db.commit()
     
-    return RedirectResponse(url="/admin/users?exam_status=added", status_code=303)
+    return RedirectResponse(url="/admin/content?exam_status=added", status_code=303)
 
 @router.post("/users/update")
 async def update_user(
     maSV: str = Form(...),
     hoTen: str = Form(...),
-    email: str = Form(...),
+    email: Optional[str] = Form(None),
     role: str = Form(...),
     user_id: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)
@@ -218,9 +224,112 @@ async def import_data(
                 raise HTTPException(status_code=400, detail="Chapter name is required for Excel import")
             import_from_excel(file_path, course_id, chapter_name)
         
-        return RedirectResponse(url="/admin/users?import_status=success", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url="/admin/content?import_status=success", status_code=status.HTTP_303_SEE_OTHER)
     except Exception as e:
-        return RedirectResponse(url=f"/admin/users?import_status=error&detail={str(e)}", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url=f"/admin/content?import_status=error&detail={str(e)}", status_code=status.HTTP_303_SEE_OTHER)
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
+
+@router.get("/users")
+async def get_users_page(
+    request: Request,
+    user_id: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    if not check_admin(db, user_id):
+        return RedirectResponse(url="/", status_code=303)
+
+    user_repo = UserRepository(db)
+    all_users = user_repo.get_all_users()
+    
+    students = [u for u in all_users if u.role == "student"]
+    teachers = [u for u in all_users if u.role == "teacher"]
+    admins = [u for u in all_users if u.role == "admin"]
+
+    # AI Metrics (placeholder or from DB)
+    from src.main.repositories.user_repository import get_ai_metrics
+    ai_metrics = get_ai_metrics(user_id)
+
+    # Get current user for header
+    current_user = user_repo.find_by_id(user_id)
+    user_fullname = f"{current_user.hoTen} - {current_user.maSV}" if current_user else "Admin"
+
+    from fastapi.templating import Jinja2Templates
+    templates = Jinja2Templates(directory="templates")
+    
+    # Get courses for the "Add Exam" and "Import" modals
+    courses = db.query(Course).all()
+
+    return templates.TemplateResponse("admin_users.html", {
+        "request": request,
+        "students": students,
+        "teachers": teachers,
+        "admins": admins,
+        "ai_metrics": ai_metrics,
+        "user_fullname": user_fullname,
+        "courses": courses,
+        "is_admin": True
+    })
+
+@router.get("/content")
+async def get_content_page(
+    request: Request,
+    user_id: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    if not check_admin(db, user_id):
+        return RedirectResponse(url="/", status_code=303)
+
+    user_repo = UserRepository(db)
+    current_user = user_repo.find_by_id(user_id)
+    user_fullname = f"{current_user.hoTen} - {current_user.maSV}" if current_user else "Admin"
+
+    all_courses = db.query(Course).all()
+    all_chapters = db.query(Chapter).all()
+    all_quizzes = db.query(Quiz).all()
+
+    from fastapi.templating import Jinja2Templates
+    templates = Jinja2Templates(directory="templates")
+
+    return templates.TemplateResponse("admin_content.html", {
+        "request": request,
+        "user_fullname": user_fullname,
+        "all_courses": all_courses,
+        "all_chapters": all_chapters,
+        "all_quizzes": all_quizzes,
+        "is_admin": True
+    })
+
+@router.get("/users/edit/{target_id}")
+async def admin_edit_user_page(
+    target_id: str,
+    request: Request,
+    user_id: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    if not check_admin(db, user_id):
+        return RedirectResponse(url="/", status_code=303)
+    
+    user_repo = UserRepository(db)
+    target_user = user_repo.find_by_id(target_id)
+    
+    if not target_user:
+        return RedirectResponse(url="/admin/users")
+
+    # Get current user for header
+    current_user = user_repo.find_by_id(user_id)
+    user_fullname = f"{current_user.hoTen} - {current_user.maSV}" if current_user else "Admin"
+    
+    from fastapi.templating import Jinja2Templates
+    templates = Jinja2Templates(directory="templates")
+
+    return templates.TemplateResponse(
+        "edit_user.html", 
+        {
+            "request": request, 
+            "target_user": target_user, 
+            "user_fullname": user_fullname,
+            "is_admin": True
+        }
+    )

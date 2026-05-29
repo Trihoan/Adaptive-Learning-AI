@@ -45,9 +45,45 @@
     font-style: italic;
     font-size: 14px;
 }
+/* COMPETENCY GROUP ITEM STYLES */
+.group-details {
+    margin-top: 10px;
+}
+.group-item {
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 4px;
+}
+.group-gioi {
+    border-left: 4px solid #fde725;
+    background: #fffde7;
+}
+.group-kha {
+    border-left: 4px solid #21908d;
+    background: #e0f2f1;
+}
+.group-can-ho-tro {
+    border-left: 4px solid #440154;
+    background: #f3e5f5;
+}
 
-.star-highlight {
+.c-gioi { color: #af9400; }
+.c-kha { color: #00695c; }
+.c-can-ho-tro { color: #4a148c; }
+
+.star-highlight-text {
+    margin-top: 15px;
+    font-weight: bold;
     color: #d32f2f;
+    font-size: 14px;
+}
+
+.mt-15 { margin-top: 15px; }
+.btn-home-container {
+    margin-top: 30px;
+    text-align: center;
+}
+
     font-size: 16px;
 }
 

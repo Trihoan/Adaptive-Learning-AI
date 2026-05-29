@@ -77,8 +77,15 @@ async def login(
     controller = AuthController(db)
     user = await controller.login(username, password)
     
-    # Tạo RedirectResponse đến trang home
-    redirect_response = RedirectResponse(url="/home", status_code=303)
+    # Xác định url chuyển hướng dựa trên vai trò
+    redirect_url = "/home"
+    if user.role == "teacher":
+        redirect_url = "/teacher/dashboard"
+    elif user.role == "admin":
+        redirect_url = "/admin/users"
+        
+    # Tạo RedirectResponse đến trang tương ứng
+    redirect_response = RedirectResponse(url=redirect_url, status_code=303)
     
     # Lưu phiên đăng nhập vào Cookie của response chuyển hướng với path="/"
     redirect_response.set_cookie(key="user_id", value=str(user.maSV), httponly=True, path="/")

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết lớp học - {{ class_info.tenLop }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/teacher.css') }}?v=1.4">
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+             <a href="{{ url_for('home_page') }}">Adaptive Learning AI</a>
+        </div>
+        <div class="user">
+            {{ user_fullname }}
+            <i class="fa-regular fa-circle-user avatar"></i>
+            <div id="user-menu" class="user-menu">
+                <div class="menu-item" onclick="goProfile()">Thông tin cá nhân</div>
+                {% if is_admin %}
+                <div class="menu-item menu-item-admin" onclick="location.href='/admin/users'">Quản lý hệ thống</div>
+                {% endif %}
+                <div class="menu-item logout" onclick="logout()">Đăng xuất</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <div class="mb-20">
+            <a href="/teacher/dashboard" style="text-decoration: none; color: #1a237e; font-weight: bold;">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại Dashboard
+            </a>
+        </div>
+
+        <div class="flex-between br-12 p-30 mb-30" style="background: #f8f9fa; padding: 20px;">
+            <div>
+                <h2 style="margin: 0; color: #1a237e;">{{ class_info.tenLop }}</h2>
+                <p class="c-666 mt-10">
+                    Mã lớp: <b>{{ class_info.maLop }}</b> | Môn học: <b>{{ class_info.course.tenMonHoc }}</b>
+                </p>
+            </div>
+            <button class="btn-success action-btn p-10 fw-bold" onclick="openAddModal()">
+                <i class="fa-solid fa-user-plus"></i> Thêm sinh viên
+            </button>
+        </div>
+
+        <div class="tabs mt-20">
+            <button class="tab-btn active" onclick="showManagementTab('students-results')">Bảng điểm chi tiết</button>
+            <button class="tab-btn" onclick="showManagementTab('class-members')">Quản lý Sinh viên</button>
+            <button class="tab-btn" onclick="showManagementTab('kho-on-tap')">Kho ôn tập</button>
+        </div>
+
+        <!-- TAB 1: BẢNG ĐIỂM CHI TIẾT -->
+        <div id="students-results" class="tab-content active">
+            {% set total_assignments = assigned_dethis|length + assigned_quizzes|length %}
+            
+            {% if total_assignments == 0 %}
+                <div class="text-center p-30 c-999">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 40px; margin-bottom: 15px;"></i>
+                    <p>Lớp học hiện chưa được giao bất kỳ đề ôn tập nào.</p>
+                </div>
+            {% endif %}
+
+            {# Hiển thị kết quả cho từng Đề ôn tập (Quiz model) #}
+            {% for d in assigned_dethis %}
+            {% set d_index = loop.index0 %}
+            <div class="assignment-group mb-30">
+                <h3 class="mb-20" style="color: #1a237e; border-left: 4px solid #1a237e; padding-left: 15px;">
+                    <i class="fa-solid fa-file-invoice"></i> Đề ôn tập: {{ d.tenDeThi }}
+                </h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="150">Mã SV</th>
+                            <th>Họ và tên</th>
+                            <th width="120">Điểm số</th>
+                            <th width="150">Thời gian làm</th>
+                            <th width="150">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in students %}
+                        {% set res = s.exam_results[d_index] %}
+                        <tr>
+                            <td>{{ s.maSV }}</td>
+                            <td>{{ s.hoTen }}</td>
+                            <td class="text-center">
+                                {% if res.diem is not none %}
+                                <b class="{{ 'score-high' if res.diem >= 7 else ('score-medium' if res.diem >= 5 else 'score-low') }}">{{ res.diem|round(2) }}</b>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if res.time %}{{ res.time|round(1) }} phút{% else %}-{% endif %}
+                            </td>
+                            <td>
+                                {% if res.diem is not none %}
+                                <span class="status-badge status-pass">Đã hoàn thành</span>
+                                {% else %}
+                                <span class="status-badge" style="background:#eee; color:#999;">Chưa làm</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+
+            {# Hiển thị kết quả cho từng Ôn tập theo chương (Chapter model) #}
+            {% for q in assigned_quizzes %}
+            {% set q_index = assigned_dethis|length + loop.index0 %}
+            <div class="assignment-group mb-30">
+                <h3 class="mb-20" style="color: #2e7d32; border-left: 4px solid #2e7d32; padding-left: 15px;">
+                    <i class="fa-solid fa-book-open"></i> Ôn tập theo chương: {{ q.tenChuong }}
+                </h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="150">Mã SV</th>
+                            <th>Họ và tên</th>
+                            <th width="120">Điểm số</th>
+                            <th width="150">Thời gian làm</th>
+                            <th width="150">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in students %}
+                        {% set res = s.exam_results[q_index] %}
+                        <tr>
+                            <td>{{ s.maSV }}</td>
+                            <td>{{ s.hoTen }}</td>
+                            <td class="text-center">
+                                {% if res.diem is not none %}
+                                <b class="{{ 'score-high' if res.diem >= 7 else ('score-medium' if res.diem >= 5 else 'score-low') }}">{{ res.diem|round(2) }}</b>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if res.time %}{{ res.time|round(1) }} phút{% else %}-{% endif %}
+                            </td>
+                            <td>
+                                {% if res.diem is not none %}
+                                <span class="status-badge status-pass">Đã hoàn thành</span>
+                                {% else %}
+                                <span class="status-badge" style="background:#eee; color:#999;">Chưa làm</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- TAB 2: QUẢN LÝ SINH VIÊN -->
+        <div id="class-members" class="tab-content">
+            <div class="flex-between mb-30 p-30 br-12" style="background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                <div>
+                    <h3 class="mb-10">Mã QR tham gia lớp</h3>
+                    <p class="c-666 fs-14">Sinh viên có thể quét mã này để tham gia lớp học ngay lập tức.</p>
+                    <p class="mt-10 fw-bold" style="color: #1a237e;">Mã lớp: {{ class_info.maLop }}</p>
+                </div>
+                <div class="text-center">
+                    <div id="qrcode"></div>
+                </div>
+            </div>
+
+            <div class="flex-between mb-20">
+                <h3>Danh sách thành viên lớp</h3>
+                <p class="c-666">Tổng số: {{ students|length }} sinh viên</p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã SV</th>
+                        <th>Họ và tên</th>
+                        <th width="200">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                    <tr>
+                        <td>{{ s.maSV }}</td>
+                        <td>{{ s.hoTen }}</td>
+                        <td>
+                            <button class="action-btn delete-btn" onclick="removeStudent('{{ s.maSV }}')" title="Xóa khỏi lớp">
+                                <i class="fa-solid fa-user-minus"></i> Gỡ khỏi lớp
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not students %}
+                    <tr><td colspan="3" class="text-center p-30 c-999">Lớp chưa có sinh viên nào.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- TAB 3: KHO ÔN TẬP -->
+        <div id="kho-on-tap" class="tab-content">
+            <div class="assignment-group mb-30">
+                <div class="flex-between mb-20">
+                    <h3 style="color: #1a237e;"><i class="fa-solid fa-layer-group"></i> Đề ôn tập </h3>
+                    <button class="create-btn" onclick="openRandomQuizModal()" style="background: #1a237e;">
+                        <i class="fa-solid fa-plus"></i> Tạo đề ôn tập mới
+                    </button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Tên đề ôn tập</th>
+                            <th>Thời gian</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in assigned_dethis %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ d.tenDeThi }}</td>
+                            <td>{{ d.thoiGianLam }} phút</td>
+                            <td>
+                                <button class="action-btn delete-btn" onclick="removeDeThi('{{ d.maDeThi }}')" title="Gỡ đề">
+                                    <i class="fa-solid fa-trash-can"></i> Gỡ đề
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not assigned_dethis %}
+                        <tr><td colspan="4" class="text-center p-30 c-999">Chưa có đề ôn tập tổng hợp nào.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="assignment-group">
+                <div class="flex-between mb-20">
+                    <h3 style="color: #2e7d32;"><i class="fa-solid fa-book"></i> Ôn tập theo chương</h3>
+                    <button class="create-btn" onclick="openAssignModal()" style="background: #2e7d32;">
+                        <i class="fa-solid fa-plus"></i> Giao chương mới
+                    </button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Tên chương ôn tập</th>
+                            <th>Môn học</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in assigned_quizzes %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ q.tenChuong }}</td>
+                            <td>{{ q.maMonHoc }}</td>
+                            <td>
+                                <button class="action-btn delete-btn" onclick="removeQuiz('{{ q.maChuong }}')" title="Gỡ chương">
+                                    <i class="fa-solid fa-trash-can"></i> Gỡ chương
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not assigned_quizzes %}
+                        <tr><td colspan="4" class="text-center p-30 c-999">Chưa có chương ôn tập nào được giao.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="randomQuizModal" class="modal">
+        <div class="modal-content">
+            <h3>Tạo đề ôn tập mới</h3>
+            <p class="fs-14 c-666 mb-20">Hệ thống sẽ lấy ngẫu nhiên 60 câu hỏi từ tất cả các chương.</p>
+            <form action="/teacher/classes/{{ class_info.id }}/quizzes/create-random" method="POST">
+                <div class="form-group">
+                    <label>Tên đề ôn tập</label>
+                    <input type="text" name="quiz_name" placeholder="VD: Ôn tập giữa kỳ" required class="w-100 p-10 br-6 border-ddd">
+                </div>
+                <div class="flex-gap-10 mt-20">
+                    <button type="submit" class="submit-btn btn-full" style="flex: 2; background: #1a237e;">Tạo và Giao</button>
+                    <button type="button" class="action-btn btn-full bg-eee c-333" onclick="closeRandomQuizModal()" style="flex: 1;">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="assignQuizModal" class="modal">
+        <div class="modal-content">
+            <h3 class="mb-20">Giao chương ôn tập</h3>
+            <form action="/teacher/classes/{{ class_info.id }}/quizzes/assign" method="POST">
+                <div class="form-group">
+                    <label>Chọn chương</label>
+                    <select name="maChuong" required class="w-100 p-10 br-6 border-ddd">
+                        {% for ch in available_chapters %}
+                        <option value="{{ ch.maChuong }}">{{ ch.tenChuong }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex-gap-10 mt-20">
+                    <button type="submit" class="submit-btn btn-full" style="flex: 2; background: #2e7d32;">Giao chương</button>
+                    <button type="button" class="action-btn btn-full bg-eee c-333" onclick="closeAssignModal()" style="flex: 1;">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="addModal" class="modal">
+        <div class="modal-content" style="width:450px;">
+            <h3>Thêm sinh viên vào lớp</h3>
+            <p class="fs-14 c-666 mb-20">Nhập danh sách mã sinh viên, cách nhau bởi dấu phẩy.</p>
+            <form action="/teacher/classes/{{ class_info.id }}/add-students" method="POST">
+                <div class="form-group">
+                    <label>Danh sách Mã SV</label>
+                    <textarea name="student_ids" placeholder="VD: B20DCCN001, B20DCCN002" class="w-100 br-6 border-ddd" style="height:100px; padding:10px;" required></textarea>
+                </div>
+                <div class="flex-gap-10 mt-20">
+                    <button type="submit" class="submit-btn btn-full" style="flex: 2;">Thêm vào lớp</button>
+                    <button type="button" class="action-btn btn-full bg-eee c-333" onclick="closeAddModal()" style="flex: 1;">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        window.onload = function() {
+            var origin = window.location.origin;
+            var joinUrl = origin + "/teacher/classes/join/" + "{{ class_info.maLop }}";
+            new QRCode(document.getElementById("qrcode"), {
+                text: joinUrl, width: 128, height: 128
+            });
+        };
+
+        function showManagementTab(tabId) {
+            var contents = document.querySelectorAll('.tab-content');
+            var buttons = document.querySelectorAll('.tab-btn');
+            for (var i = 0; i < contents.length; i++) contents[i].classList.remove('active');
+            for (var j = 0; j < buttons.length; j++) buttons[j].classList.remove('active');
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function openRandomQuizModal() { document.getElementById('randomQuizModal').style.display = 'flex'; }
+        function closeRandomQuizModal() { document.getElementById('randomQuizModal').style.display = 'none'; }
+        function openAssignModal() { document.getElementById('assignQuizModal').style.display = 'flex'; }
+        function closeAssignModal() { document.getElementById('assignQuizModal').style.display = 'none'; }
+        function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+        function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
+        
+        function removeStudent(maSV) {
+            if (!confirm("Xóa sinh viên " + maSV + " khỏi lớp?")) return;
+            fetch("/teacher/classes/{{ class_info.id }}/students/" + maSV, { method: 'DELETE' })
+                .then(res => res.json()).then(data => { if (data.status === 'success') location.reload(); });
+        }
+        function removeQuiz(id) {
+            if (!confirm("Gỡ chương này?")) return;
+            fetch("/teacher/classes/{{ class_info.id }}/quizzes/" + id, { method: 'DELETE' })
+                .then(res => res.json()).then(data => { if (data.status === 'success') location.reload(); });
+        }
+        function removeDeThi(id) {
+            if (!confirm("Gỡ đề ôn tập này?")) return;
+            fetch("/teacher/classes/{{ class_info.id }}/dethis/" + id, { method: 'DELETE' })
+                .then(res => res.json()).then(data => { if (data.status === 'success') location.reload(); });
+        }
+
+        var userEl = document.querySelector(".user");
+        if (userEl) { userEl.addEventListener("click", function(e) {
+            e.stopPropagation();
+            var menu = document.getElementById("user-menu");
+            if (menu) menu.style.display = (menu.style.display === "block") ? "none" : "block";
+        }); }
+        document.addEventListener("click", function() { var menu = document.getElementById("user-menu"); if (menu) menu.style.display = "none"; });
+        function goProfile() { window.location.href = "/profile"; }
+        function logout() { localStorage.clear(); document.cookie = "user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; window.location.href = "/"; }
+    </script>
+</body>
+</html>

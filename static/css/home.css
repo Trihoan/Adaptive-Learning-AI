@@ -350,6 +350,25 @@ body {
     background: #ff9800;
 }
 
+/* ASSIGNED QUIZZES STYLES */
+.assigned-item {
+    border-left: 5px solid #1a237e;
+    background: #f8f9ff;
+}
+
+.assigned-badge {
+    background: #1a237e;
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    vertical-align: middle;
+}
+
 .status {
     background: #ccc;
     padding: 6px 10px;

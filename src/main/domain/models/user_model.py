@@ -24,6 +24,8 @@ class User(Base):
     learning_behaviors = relationship("HanhViHocTap", back_populates="user", cascade="all, delete-orphan")
     learning_paths = relationship("LoTrinh", back_populates="user", cascade="all, delete-orphan")
     skills = relationship("UserSkill", back_populates="user", cascade="all, delete-orphan")
+    classes_taught = relationship("Class", back_populates="teacher")
+    classes_joined = relationship("Class", secondary="sinh_vien_lop_hoc", back_populates="students")
 
 class HanhViHocTap(Base):
     __tablename__ = "hanhvihoctap"

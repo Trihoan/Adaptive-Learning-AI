@@ -35,12 +35,14 @@
             </div>
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" name="email" value="{{ target_user.email }}" required>
+                <input type="text" value="{{ target_user.email if target_user.email else '' }}" readonly style="background:#eee">
+                <input type="hidden" name="email" value="{{ target_user.email if target_user.email else '' }}">
             </div>
             <div class="form-group">
                 <label>Vai trò</label>
                 <select name="role">
                     <option value="student" {{ 'selected' if target_user.role == 'student' }}>Sinh viên</option>
+                    <option value="teacher" {{ 'selected' if target_user.role == 'teacher' }}>Giảng viên</option>
                     <option value="admin" {{ 'selected' if target_user.role == 'admin' }}>Quản trị viên</option>
                 </select>
             </div>

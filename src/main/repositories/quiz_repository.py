@@ -10,6 +10,9 @@ class QuizRepository:
         # Lấy câu hỏi kèm theo các đáp án (Eager loading answers)
         return self.db.query(Question).filter(Question.maChuong == chapter_id).all()
 
+    def get_questions_by_quiz(self, quiz_id: int) -> List[Question]:
+        return self.db.query(Question).filter(Question.maDeThi == quiz_id).all()
+
     def get_question_by_id(self, question_id: int) -> Question:
         return self.db.query(Question).filter(Question.maCauHoi == question_id).first()
 

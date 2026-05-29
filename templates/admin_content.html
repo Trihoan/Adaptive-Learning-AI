@@ -19,9 +19,6 @@
             <i class="fa-regular fa-circle-user avatar"></i>
             <div id="user-menu" class="user-menu">
                 <div class="menu-item" onclick="goProfile()">Thông tin cá nhân</div>
-                <div class="menu-item menu-item-special" onclick="location.href='/competency-map'">
-                    Bản đồ năng lực
-                </div>
                 <div class="menu-item logout" onclick="logout()">Đăng xuất</div>
             </div>
         </div>
@@ -60,11 +57,11 @@
             <form action="/admin/courses/add" method="POST" class="admin-grid-form">
                 <div class="form-group">
                     <label>Mã môn học (Viết liền, không dấu)</label>
-                    <input type="text" name="maMonHoc" required placeholder="Ví dụ: TRIETHOC">
+                    <input type="text" name="maMonHoc" required placeholder="Ví dụ: CNXH">
                 </div>
                 <div class="form-group">
                     <label>Tên môn học (Đầy đủ)</label>
-                    <input type="text" name="tenMonHoc" required placeholder="Ví dụ: Triết học Mác - Lênin">
+                    <input type="text" name="tenMonHoc" required placeholder="Ví dụ: Chủ nghĩa xã hội Khoa học">
                 </div>
                 <button type="submit" class="action-btn edit-btn span-2 btn-full">
                     Tạo môn học
@@ -114,10 +111,20 @@
                     <textarea name="noiDung" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Thuộc chương/đề</label>
-                    <select name="maChuong" required>
+                    <label>Thuộc chương học (Dành cho ôn tập)</label>
+                    <select name="maChuong">
+                        <option value="">-- Không chọn (Nếu thuộc đề thi) --</option>
                         {% for ch in all_chapters %}
                         <option value="{{ ch.maChuong }}">{{ ch.maMonHoc }} - {{ ch.tenChuong }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Thuộc đề thi (Dành cho kiểm tra)</label>
+                    <select name="maDeThi">
+                        <option value="">-- Không chọn (Nếu thuộc chương) --</option>
+                        {% for q in all_quizzes %}
+                        <option value="{{ q.maDeThi }}">{{ q.maMonHoc }} - {{ q.tenDeThi }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -140,7 +147,7 @@
 
         <!-- ADD GENERAL EXAM SECTION -->
         <div class="import-section">
-            <h3><i class="fa-solid fa-layer-group"></i> Tạo đề thi tổng hợp mới</h3>
+            <h3><i class="fa-solid fa-layer-group"></i> Tạo đề thi mới</h3>
             <form action="/admin/general-exams/add" method="POST" class="admin-grid-form">
                 <div class="form-group">
                     <label>Môn học</label>
@@ -151,11 +158,46 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Tên đề (Ví dụ: Đề tổng hợp số 1)</label>
-                    <input type="text" name="exam_name" required placeholder="Đề tổng hợp số 1">
+                    <label>Tên đề (Ví dụ: Đề thi giữa kỳ 1)</label>
+                    <input type="text" name="exam_name" required placeholder="Đề thi giữa kỳ 1">
+                </div>
+                <div class="form-group">
+                    <label>Thời gian làm bài (Phút)</label>
+                    <input type="number" name="time_limit" value="60" required>
                 </div>
                 <button type="submit" class="action-btn btn-success span-2 btn-full">Tạo đề thi</button>
             </form>
+        </div>
+
+        <!-- MANAGE EXAMS TABLE -->
+        <div class="import-section">
+            <h3><i class="fa-solid fa-file-lines"></i> Danh sách Đề thi hiện có</h3>
+            <div class="table-scroll-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên đề thi</th>
+                            <th>Môn học</th>
+                            <th>Thời gian</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in all_quizzes %}
+                        <tr>
+                            <td>{{ q.maDeThi }}</td>
+                            <td>{{ q.tenDeThi }}</td>
+                            <td>{{ q.maMonHoc }}</td>
+                            <td>{{ q.thoiGianLam }} phút</td>
+                            <td>
+                                <button class="action-btn delete-btn" onclick="alert('Tính năng xóa đề đang được cập nhật')">Xóa</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- MANAGE QUESTIONS TABLE -->
@@ -166,7 +208,13 @@
                 <select id="qFilterChapter" onchange="filterQuestions()">
                     <option value="">Tất cả chương</option>
                     {% for ch in all_chapters %}
-                    <option value="{{ ch.maChuong }}">{{ ch.maMonHoc }} - {{ ch.tenChuong }}</option>
+                    <option value="ch_{{ ch.maChuong }}">{{ ch.maMonHoc }} - {{ ch.tenChuong }}</option>
+                    {% endfor %}
+                </select>
+                <select id="qFilterQuiz" onchange="filterQuestions()">
+                    <option value="">Tất cả đề thi</option>
+                    {% for q in all_quizzes %}
+                    <option value="qz_{{ q.maDeThi }}">{{ q.maMonHoc }} - {{ q.tenDeThi }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -176,7 +224,7 @@
                         <tr>
                             <th>ID</th>
                             <th>Nội dung</th>
-                            <th>Chương ID</th>
+                            <th>Vị trí</th>
                             <th>Hành động</th>
                         </tr>
                     </thead>
@@ -205,7 +253,7 @@
                 <tr>
                     <td>${q.maCauHoi}</td>
                     <td title="${q.noiDung}">${q.noiDung.substring(0, 80)}${q.noiDung.length > 80 ? '...' : ''}</td>
-                    <td>${q.maChuong}</td>
+                    <td>${q.maDeThi ? 'Đề thi ' + q.maDeThi : 'Chương ' + q.maChuong}</td>
                     <td>
                         <button onclick="deleteQuestion(${q.maCauHoi})" class="action-btn delete-btn">Xóa</button>
                     </td>
@@ -215,12 +263,23 @@
 
         function filterQuestions() {
             const searchText = document.getElementById("qSearch").value.toLowerCase();
-            const chapterId = document.getElementById("qFilterChapter").value;
+            const chapterVal = document.getElementById("qFilterChapter").value;
+            const quizVal = document.getElementById("qFilterQuiz").value;
             
             const filtered = allQuestions.filter(q => {
                 const matchSearch = q.noiDung.toLowerCase().includes(searchText);
-                const matchChapter = !chapterId || q.maChuong == chapterId;
-                return matchSearch && matchChapter;
+                
+                let matchPos = true;
+                if (chapterVal) {
+                    const chId = chapterVal.replace('ch_', '');
+                    matchPos = q.maChuong == chId;
+                }
+                if (quizVal) {
+                    const qzId = quizVal.replace('qz_', '');
+                    matchPos = q.maDeThi == qzId;
+                }
+                
+                return matchSearch && matchPos;
             });
             renderQuestions(filtered);
         }

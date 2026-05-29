@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Cookie
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from src.main.database import get_db
 from src.main.controllers.quiz_controller import QuizController

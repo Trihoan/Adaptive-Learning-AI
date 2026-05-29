@@ -16,13 +16,15 @@ class Exam(Base):
 
     maBaiKiemTra = Column(Integer, primary_key=True, autoincrement=True)
     maSV = Column(String(20), ForeignKey("nguoihoc.maSV", ondelete="CASCADE"))
-    maChuong = Column(Integer, ForeignKey("chuonghoc.maChuong", ondelete="CASCADE"))
+    maChuong = Column(Integer, ForeignKey("chuonghoc.maChuong", ondelete="CASCADE"), nullable=True)
+    maDeThi = Column(Integer, ForeignKey("dethi.maDeThi", ondelete="CASCADE"), nullable=True)
     thoiGianBatDau = Column(DateTime, default=datetime.utcnow)
     thoiGianKetThuc = Column(DateTime)
     diem = Column(Float)
 
     user = relationship("User", back_populates="exams")
     chapter = relationship("Chapter", back_populates="exams")
+    quiz = relationship("Quiz", back_populates="exams")
     questions = relationship("Question", secondary="chitietbaikiemtra", back_populates="exams")
     results = relationship("StudyResult", back_populates="exam")
 
@@ -30,13 +32,15 @@ class Question(Base):
     __tablename__ = "cauhoi"
 
     maCauHoi = Column(Integer, primary_key=True, autoincrement=True)
-    maChuong = Column(Integer, ForeignKey("chuonghoc.maChuong", ondelete="CASCADE"))
+    maChuong = Column(Integer, ForeignKey("chuonghoc.maChuong", ondelete="CASCADE"), nullable=True)
+    maDeThi = Column(Integer, ForeignKey("dethi.maDeThi", ondelete="CASCADE"), nullable=True)
     noiDung = Column(Text, nullable=False)
     doKho = Column(Integer)
     loaiCauHoi = Column(String(20), default="single")
     giaiThich = Column(Text)
 
     chapter = relationship("Chapter", back_populates="questions")
+    quiz = relationship("Quiz", back_populates="questions")
     answers = relationship("Answer", back_populates="question", cascade="all, delete-orphan")
     exams = relationship("Exam", secondary="chitietbaikiemtra", back_populates="questions")
     results = relationship("StudyResult", back_populates="question")

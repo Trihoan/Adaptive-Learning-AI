@@ -14,3 +14,4 @@ class Chapter(Base):
     course = relationship("Course", back_populates="chapters")
     questions = relationship("Question", back_populates="chapter", cascade="all, delete-orphan")
     exams = relationship("Exam", back_populates="chapter", cascade="all, delete-orphan")
+    assigned_classes = relationship("Class", secondary="lop_hoc_chuong_hoc", back_populates="quizzes")

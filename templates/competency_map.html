@@ -22,9 +22,11 @@
             <i class="fa-regular fa-circle-user avatar"></i>
             <div id="user-menu" class="user-menu">
                 <div class="menu-item" onclick="goProfile()">Thông tin cá nhân</div>
+                {% if not is_admin %}
                 <div class="menu-item menu-item-special" onclick="location.href='/competency-map'">
                     Bản đồ năng lực
                 </div>
+                {% endif %}
                 {% if is_admin %}
                 <div class="menu-item menu-item-admin" onclick="location.href='/admin/users'">Quản lý</div>
                 {% endif %}
@@ -58,22 +60,22 @@
                         </ul>
                     </div>
 
-                    <div class="explanation-item" style="margin-top: 15px;">
+                    <div class="explanation-item mt-15">
                         <b>2. Phân loại nhóm năng lực (Màu sắc):</b>
                         <div class="group-details">
-                            <div class="group-item" style="border-left: 4px solid #fde725; background: #fffde7; padding: 10px; margin: 8px 0; border-radius: 4px;">
-                                <b style="color: #af9400;">● Nhóm Giỏi (Vàng/Xanh lá sáng):</b> Sinh viên có điểm số cao và thời gian học tập ổn định. Đây là nhóm đã làm chủ được kiến thức.
+                            <div class="group-item group-gioi">
+                                <b class="c-gioi">● Nhóm Giỏi (Vàng/Xanh lá sáng):</b> Sinh viên có điểm số cao và thời gian học tập ổn định. Đây là nhóm đã làm chủ được kiến thức.
                             </div>
-                            <div class="group-item" style="border-left: 4px solid #21908d; background: #e0f2f1; padding: 10px; margin: 8px 0; border-radius: 4px;">
-                                <b style="color: #00695c;">● Nhóm Khá (Xanh ngọc):</b> Sinh viên có mức điểm trung bình khá, nỗ lực ở mức vừa phải. Cần bứt phá hơn trong việc luyện tập để tiến tới nhóm Giỏi.
+                            <div class="group-item group-kha">
+                                <b class="c-kha">● Nhóm Khá (Xanh ngọc):</b> Sinh viên có mức điểm trung bình khá, nỗ lực ở mức vừa phải. Cần bứt phá hơn trong việc luyện tập để tiến tới nhóm Giỏi.
                             </div>
-                            <div class="group-item" style="border-left: 4px solid #440154; background: #f3e5f5; padding: 10px; margin: 8px 0; border-radius: 4px;">
-                                <b style="color: #4a148c;">● Nhóm Cần hỗ trợ (Tím/Xanh đậm):</b> Sinh viên có điểm số chưa cao hoặc mới bắt đầu tham gia hệ thống. AI khuyến nghị bạn nên xem lại bài giảng và làm thêm bài tập cơ bản.
+                            <div class="group-item group-can-ho-tro">
+                                <b class="c-can-ho-tro">● Nhóm Cần hỗ trợ (Tím/Xanh đậm):</b> Sinh viên có điểm số chưa cao hoặc mới bắt đầu tham gia hệ thống. AI khuyến nghị bạn nên xem lại bài giảng và làm thêm bài tập cơ bản.
                             </div>
                         </div>
                     </div>
 
-                    <p style="margin-top: 15px; font-weight: bold; color: #d32f2f; font-size: 14px;">
+                    <p class="star-highlight-text">
                         <i class="fa-solid fa-star"></i> Vị trí ngôi sao đỏ của bạn sẽ thay đổi theo thời gian thực dựa trên sự tiến bộ của bạn!
                     </p>
                 </div>

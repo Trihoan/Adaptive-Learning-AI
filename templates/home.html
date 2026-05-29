@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALAS - Home</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='css/AI.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}?v=1.2">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/AI.css') }}?v=1.7">
     <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
 </head>
 
@@ -23,9 +23,14 @@
             <i class="fa-regular fa-circle-user avatar"></i>
             <div id="user-menu" class="user-menu">
                 <div class="menu-item" onclick="goProfile()">Thông tin cá nhân</div>
+                {% if not is_admin %}
+                <div class="menu-item menu-item-special" onclick="location.href='/my-classes'">
+                    Lớp học của tôi
+                </div>
                 <div class="menu-item menu-item-special" onclick="location.href='/competency-map'">
                     Bản đồ năng lực
                 </div>
+                {% endif %}
                 {% if is_admin %}
                 <div class="menu-item menu-item-admin" onclick="location.href='/admin/users'">Quản lý</div>
                 {% endif %}
@@ -39,6 +44,22 @@
         <!-- Sẽ được load động bằng JS -->
     </div>
 
+    <!-- JOIN STATUS NOTIFICATION -->
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('join_status') === 'success') {
+            alert('Chúc mừng! Bạn đã tham gia lớp học thành công.');
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (urlParams.get('error') === 'class_full') {
+            alert('Lỗi: Lớp học đã đủ sĩ số (40 người).');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (urlParams.get('error') === 'only_students_can_join') {
+            alert('Lỗi: Chỉ sinh viên mới có thể tham gia lớp học.');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
+
     <!-- EXERCISE LIST -->
     <div id="chapter-list" class="exercise"></div>
 
@@ -49,7 +70,11 @@
             <span onclick="toggleChat()" style="float:right; cursor:pointer;">×</span>
         </div>
         <div id="chat-body">
-            <div class="bot-msg">Chào bạn! Tôi là AI cố vấn học tập. Bạn cần tôi tư vấn về lộ trình học hay chương tiếp theo không?</div>
+            <div class="bot-msg">Chào bạn! Mình là ALAS AI. Mình đã nắm được kết quả học tập của bạn. Bạn muốn mình tư vấn về lộ trình hay giải thích chương nào bạn đang học yếu không?</div>
+            <div class="quick-actions" style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
+                <button onclick="quickAsk('Dạo này mình học thế nào?')" style="background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e; border-radius: 15px; padding: 5px 12px; cursor: pointer; font-size: 12px;">📈 Kết quả của mình</button>
+                <button onclick="quickAsk('Mình nên tập trung ôn phần nào?')" style="background: #e8eaf6; border: 1px solid #1a237e; color: #1a237e; border-radius: 15px; padding: 5px 12px; cursor: pointer; font-size: 12px;">🔍 Phần mình còn yếu</button>
+            </div>
         </div>
         <div id="chat-footer">
             <input type="text" id="chat-input" placeholder="Hỏi AI về lộ trình học...">
@@ -65,6 +90,12 @@
         function toggleChat() {
             const chat = document.getElementById("chat-container");
             chat.style.display = chat.style.display === "flex" ? "none" : "flex";
+        }
+
+        function quickAsk(text) {
+            const input = document.getElementById("chat-input");
+            input.value = text;
+            sendMessage();
         }
 
         async function sendMessage() {
@@ -108,12 +139,10 @@
         });
 
         function goProfile() {
-            // Chuyển hướng đến trang thông tin cá nhân (nếu có)
             window.location.href = "/profile";
         }
 
         function logout() {
-            // Xóa cookie, xóa bộ nhớ tạm và quay về trang login
             localStorage.clear();
             document.cookie = "user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             window.location.href = "/";
@@ -134,23 +163,19 @@
     </script>
 
     <script>
-        // Đọc dữ liệu từ backend
         const dynamicCourses = JSON.parse(document.getElementById('dynamic-courses').textContent || '{}');
         const courseNames = JSON.parse(document.getElementById('course-names').textContent || '{}');
         const dbStats = JSON.parse(document.getElementById('db-stats').textContent || '{}');
         const draftPrefix = "alas_quiz_draft_";
-        let cloudDrafts = {}; // Lưu trữ bản nháp từ server
+        let cloudDrafts = {}; 
 
         async function loadCloudDrafts() {
             try {
-                // Ta có thể tạo 1 API lấy tất cả draft của user hoặc lấy từng cái
-                // Để đơn giản, ta sẽ lấy danh sách topic từ dynamicCourses và fetch
                 const topics = [];
                 Object.values(dynamicCourses).forEach(course => {
                     course.forEach(ex => topics.push(ex.topic));
                 });
 
-                // Gọi đồng thời để tối ưu
                 const promises = topics.map(async (topic) => {
                     const res = await fetch("/api/exams/draft/get/" + encodeURIComponent(topic));
                     const data = await res.json();
@@ -159,28 +184,21 @@
                     }
                 });
                 await Promise.all(promises);
-                
-                // Sau khi load xong cloud drafts, render lại giao diện
                 showChapters(getActiveCourse());
             } catch (e) { console.error("Load Cloud Drafts Error:", e); }
         }
 
         function getDraft(topic) {
-            // Ưu tiên bản nháp từ Cloud (Cross-browser)
             if (cloudDrafts[topic]) return cloudDrafts[topic];
-
             try {
                 const draft = JSON.parse(localStorage.getItem(draftPrefix + topic) || "null");
                 if (!draft || (!Array.isArray(draft.questionIds) && !Array.isArray(draft.question_ids))) return null;
                 return draft;
-            } catch (e) {
-                return null;
-            }
+            } catch (e) { return null; }
         }
 
         function clearDraft(topic) {
             localStorage.removeItem(draftPrefix + topic);
-            // Xóa cả trên Cloud
             fetch("/api/exams/draft/delete/" + encodeURIComponent(topic), { method: "DELETE" });
         }
 
@@ -200,10 +218,9 @@
             courseData.forEach((ex, index) => {
                 let stat = dbStats[ex.topic] || { count: 0, time: "0 phút" };
                 let draft = getDraft(ex.topic);
-                
-                // Tiêu đề hiển thị
                 let displayTitle = ex.is_general ? ex.title : `Bài luyện tập: ${ex.title}`;
                 let qCount = ex.is_general ? 60 : 40;
+                let assignedBadge = ex.is_assigned ? `<span class="assigned-badge"><i class="fa-solid fa-thumbtack"></i> Giảng viên giao</span>` : "";
 
                 let action = "";
                 if (draft) {
@@ -222,9 +239,9 @@
                 }
 
                 html += `
-                    <div class="exercise-item ${ex.is_general ? 'general-exam' : ''}">
+                    <div class="exercise-item ${ex.is_general ? 'general-exam' : ''} ${ex.is_assigned ? 'assigned-item' : ''}">
                         <div class="exercise-info">
-                            <div class="title">${displayTitle}</div>
+                            <div class="title">${displayTitle} ${assignedBadge}</div>
                             <div class="meta">Tổng thời gian làm bài: ${stat.time} &nbsp;&nbsp; ${stat.count} lần nộp bài &nbsp;&nbsp; ${qCount} câu hỏi</div>
                         </div>
                         <div class="exercise-action">${action}</div>
@@ -232,8 +249,6 @@
             });
             
             document.getElementById("chapter-list").innerHTML = html;
-            
-            // Cập nhật trạng thái active cho nút môn học
             document.querySelectorAll(".subject").forEach(sub => sub.classList.remove("active"));
             const activeSub = document.getElementById(courseId);
             if (activeSub) activeSub.classList.add("active");
@@ -279,10 +294,10 @@
             renderSubjects();
             const firstCourse = Object.keys(dynamicCourses)[0] || "TTHCM";
             showChapters(firstCourse); 
-            loadCloudDrafts(); // Gọi đồng bộ từ server
+            loadCloudDrafts();
         }
         window.addEventListener("focus", function () { 
-            loadCloudDrafts(); // Cập nhật lại mỗi khi quay lại tab
+            loadCloudDrafts();
         });
     </script>
 

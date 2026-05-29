@@ -88,30 +88,37 @@ class QuizService:
         )
 
     def get_questions_by_topic(self, topic: str, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
-        from src.main.domain.models import Chapter, Course, User, Question
+        from src.main.domain.models import Chapter, Course, User, Question, Quiz
         
         print(f"🔍 Searching questions for topic: '{topic}'")
         
         # Làm sạch topic: loại bỏ các ký tự đặc biệt, khoảng trắng thừa
         clean_topic = topic.strip()
         
-        # 1. Tìm chương dựa trên tên (topic)
-        # Thử tìm chính xác
-        chapter = self.db.query(Chapter).filter(Chapter.tenChuong == clean_topic).first()
+        # 1. Tìm chương học (Chapter) hoặc Đề thi (Quiz)
+        chapter = None
+        quiz = None
         
-        if not chapter:
-            # Thử tìm theo LIKE (chứa topic)
-            chapter = self.db.query(Chapter).filter(Chapter.tenChuong.like(f"%{clean_topic}%")).first()
-        
-        if not chapter and ":" in clean_topic:
-            # Thử lấy phần sau dấu hai chấm
+        # Thử tìm Quiz trước (vì ưu tiên Đề thi nếu trùng tên)
+        quiz = self.db.query(Quiz).filter(Quiz.tenDeThi == clean_topic).first()
+        if not quiz:
+            quiz = self.db.query(Quiz).filter(Quiz.tenDeThi.like(f"%{clean_topic}%")).first()
+            
+        if not quiz:
+            # Thử tìm Chapter
+            chapter = self.db.query(Chapter).filter(Chapter.tenChuong == clean_topic).first()
+            if not chapter:
+                chapter = self.db.query(Chapter).filter(Chapter.tenChuong.like(f"%{clean_topic}%")).first()
+
+        if not chapter and not quiz and ":" in clean_topic:
             sub_topic = clean_topic.split(":")[-1].strip()
             chapter = self.db.query(Chapter).filter(Chapter.tenChuong.like(f"%{sub_topic}%")).first()
+            if not chapter:
+                quiz = self.db.query(Quiz).filter(Quiz.tenDeThi.like(f"%{sub_topic}%")).first()
 
-        if not chapter:
+        if not chapter and not quiz:
             # Thử tìm theo mapping rút gọn (fallback cho recommend.html)
             short_maps = {
-                # CNXHKH
                 "Nhập môn CNXHKH": "Nhập môn",
                 "Sứ mệnh giai cấp công nhân": "Sứ mệnh lịch sử",
                 "Thời kỳ quá độ": "thời kỳ quá độ",
@@ -119,7 +126,6 @@ class QuizService:
                 "Cơ cấu xã hội - giai cấp": "Cơ cấu xã hội",
                 "Dân tộc và tôn giáo": "Dân tộc",
                 "Vấn đề gia đình": "gia đình",
-                # TTHCM
                 "Cơ sở hình thành TTHCM": "Cơ sở hình thành",
                 "Độc lập dân tộc và CNXH": "Độc lập dân tộc",
                 "Đảng Cộng sản và Nhà nước": "Đảng Cộng sản",
@@ -129,26 +135,9 @@ class QuizService:
             if clean_topic in short_maps:
                 chapter = self.db.query(Chapter).filter(Chapter.tenChuong.like(f"%{short_maps[clean_topic]}%")).first()
 
-        if not chapter:
-            # Thử tìm mờ hơn nữa: Lấy 3 từ đầu tiên của topic để tìm
-            words = clean_topic.split()
-            if len(words) >= 2:
-                search_term = " ".join(words[:3])
-                chapter = self.db.query(Chapter).filter(Chapter.tenChuong.like(f"%{search_term}%")).first()
-
-        if not chapter:
-            # Thử tìm theo số chương (Nếu topic là "Chương 1", "Chương 2"...)
-            import re
-            match = re.search(r'Chương\s+(\d+)', clean_topic, re.IGNORECASE)
-            if match:
-                stt_val = int(match.group(1))
-                chapter = self.db.query(Chapter).filter(Chapter.stt == stt_val).first()
-
-        if not chapter:
-            print(f"❌ Không tìm thấy chương cho topic: '{clean_topic}'")
+        if not chapter and not quiz:
+            print(f"❌ Không tìm thấy chương hoặc đề thi cho topic: '{clean_topic}'")
             return []
-
-        print(f"✅ Found chapter: {chapter.maChuong} - {chapter.tenChuong}")
 
         # 2. Xác định trình độ người dùng để lọc câu hỏi (Adaptive)
         user_level = 1
@@ -166,34 +155,36 @@ class QuizService:
 
         all_questions = []
         try:
-            if chapter.stt >= 100:
-                # ĐỀ TỔNG HỢP
-                course_chapters = self.db.query(Chapter).filter(
-                    Chapter.monhoc_id == chapter.monhoc_id,
-                    Chapter.stt < 100
-                ).all()
-                chapter_ids = [c.maChuong for c in course_chapters]
-                
-                db_questions = self.db.query(Question).filter(
-                    Question.maChuong.in_(chapter_ids),
-                    Question.doKho == user_level
-                ).all()
-                
-                if len(db_questions) < 20:
-                    db_questions = self.db.query(Question).filter(Question.maChuong.in_(chapter_ids)).all()
-                
+            db_questions = []
+            limit = 40
+            if quiz:
+                db_questions = self.repo.get_questions_by_quiz(quiz.maDeThi)
                 limit = 60
-            else:
-                # ĐỀ CHƯƠNG
-                db_questions = self.db.query(Question).filter(
-                    Question.maChuong == chapter.maChuong,
-                    Question.doKho == user_level
-                ).all()
-
-                if len(db_questions) < 5:
-                    db_questions = self.db.query(Question).filter(Question.maChuong == chapter.maChuong).all()
-                
-                limit = 40
+                print(f"✅ Found quiz: {quiz.maDeThi} - {quiz.tenDeThi}")
+            elif chapter:
+                if chapter.stt >= 100:
+                    # ĐỀ TỔNG HỢP (Legacy)
+                    course_chapters = self.db.query(Chapter).filter(
+                        Chapter.monhoc_id == chapter.monhoc_id,
+                        Chapter.stt < 100
+                    ).all()
+                    chapter_ids = [c.maChuong for c in course_chapters]
+                    db_questions = self.db.query(Question).filter(
+                        Question.maChuong.in_(chapter_ids),
+                        Question.doKho == user_level
+                    ).all()
+                    if len(db_questions) < 20:
+                        db_questions = self.db.query(Question).filter(Question.maChuong.in_(chapter_ids)).all()
+                    limit = 60
+                else:
+                    db_questions = self.db.query(Question).filter(
+                        Question.maChuong == chapter.maChuong,
+                        Question.doKho == user_level
+                    ).all()
+                    if len(db_questions) < 5:
+                        db_questions = self.db.query(Question).filter(Question.maChuong == chapter.maChuong).all()
+                    limit = 40
+                print(f"✅ Found chapter: {chapter.maChuong} - {chapter.tenChuong}")
 
             print(f"📝 Total questions found: {len(db_questions)}")
 
@@ -205,7 +196,8 @@ class QuizService:
                     q_data = {
                         "id": str(q.maCauHoi),
                         "text": q.noiDung,
-                        "chapter_id": q.maChuong, 
+                        "chapter_id": q.maChuong,
+                        "quiz_id": q.maDeThi,
                         "A": ans_list[0].noiDungDapAn if len(ans_list) > 0 else "N/A",
                         "B": ans_list[1].noiDungDapAn if len(ans_list) > 1 else "N/A",
                         "C": ans_list[2].noiDungDapAn if len(ans_list) > 2 else "N/A",
@@ -216,7 +208,8 @@ class QuizService:
             
             if not all_questions:
                 print("⚠️ No valid questions with answers found!")
-                return [{ "id": "sample", "text": f"Đang cập nhật câu hỏi cho chương '{chapter.tenChuong}'...", "A": "Vui lòng quay lại sau", "correct": "A", "chapter_id": chapter.maChuong }]
+                target_name = quiz.tenDeThi if quiz else chapter.tenChuong
+                return [{ "id": "sample", "text": f"Đang cập nhật câu hỏi cho '{target_name}'...", "A": "Vui lòng quay lại sau", "correct": "A", "chapter_id": chapter.maChuong if chapter else None }]
 
             import random
             random.shuffle(all_questions)

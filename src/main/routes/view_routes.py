@@ -46,21 +46,73 @@ async def register_page(request: Request):
 
 @router.get("/home", response_class=HTMLResponse)
 async def home_page(request: Request, user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
+    user_repo = UserRepository(db)
+    user = user_repo.find_by_id(user_id)
+    
+    if user and user.role == "teacher":
+        return RedirectResponse(url="/teacher/dashboard", status_code=303)
+    
     fullname = get_fullname(db, user_id)
     
     # 1. Lấy danh sách môn học và chương từ DB
     db_courses = db.query(Course).all()
+    
+    # Lấy danh sách maChuong và maDeThi đã được giao cho các lớp mà sinh viên tham gia
+    assigned_quiz_ids = []
+    assigned_dethi_ids = []
+    if user_id and user.role == "student":
+        from src.main.domain.models import ClassStudent, ClassQuiz, ClassQuizNew
+        # Tìm các lớp sinh viên tham gia
+        user_classes = db.query(ClassStudent.maLop).filter(ClassStudent.maSV == user_id).all()
+        class_ids = [c.maLop for c in user_classes]
+        if class_ids:
+            # Tìm các đề ôn tập (chương) được giao
+            assigned_quizzes = db.query(ClassQuiz.maChuong).filter(ClassQuiz.maLop.in_(class_ids)).all()
+            assigned_quiz_ids = [q.maChuong for q in assigned_quizzes]
+            
+            # Tìm các đề thi được giao
+            assigned_dethis = db.query(ClassQuizNew.maDeThi).filter(ClassQuizNew.maLop.in_(class_ids)).all()
+            assigned_dethi_ids = [d.maDeThi for d in assigned_dethis]
+
     dynamic_courses = {}
     course_names = {}
     for c in db_courses:
         course_names[c.maMonHoc] = c.tenMonHoc
-        db_chapters = db.query(Chapter).filter(Chapter.monhoc_id == c.id).order_by(Chapter.stt).all()
+        
+        # 1. Lọc chương học/đề ôn tập (stt < 100 hoặc được giao)
+        db_chapters = db.query(Chapter).filter(
+            Chapter.monhoc_id == c.id
+        ).filter(
+            (Chapter.stt < 100) | (Chapter.maChuong.in_(assigned_quiz_ids))
+        ).order_by(Chapter.stt).all()
+        
+        # 2. Lấy các đề thi được giao
+        from src.main.domain.models import Quiz
+        db_quizzes = db.query(Quiz).filter(
+            Quiz.monhoc_id == c.id,
+            Quiz.maDeThi.in_(assigned_dethi_ids)
+        ).all()
+        
         dynamic_courses[c.maMonHoc] = []
         for ch in db_chapters:
             dynamic_courses[c.maMonHoc].append({
-                "title": ch.tenChuong if ch.stt < 100 else f"{ch.tenChuong}",
-                "topic": ch.tenChuong, # Dùng tenChuong làm topic key
-                "is_general": ch.stt >= 100
+                "id": ch.maChuong,
+                "type": "chapter",
+                "title": ch.tenChuong,
+                "topic": ch.tenChuong,
+                "is_general": ch.stt >= 100,
+                "is_assigned": ch.maChuong in assigned_quiz_ids
+            })
+            
+        for qz in db_quizzes:
+            dynamic_courses[c.maMonHoc].append({
+                "id": qz.maDeThi,
+                "type": "quiz",
+                "title": qz.tenDeThi,
+                "topic": qz.tenDeThi,
+                "is_general": True,
+                "is_assigned": True,
+                "time_limit": qz.thoiGianLam
             })
 
     # Lấy thống kê thực tế từ DB
@@ -232,33 +284,31 @@ async def process_result(
 
     # LƯU KẾT QUẢ VÀO DATABASE
     if user_id:
-        from src.main.domain.models import Exam, StudyResult, Chapter as ChapterModel
+        from src.main.domain.models import Exam, StudyResult, Chapter as ChapterModel, Quiz as QuizModel
         from datetime import datetime, timedelta
 
-        # 1. Tìm chapter_id linh hoạt hơn
+        # 1. Tìm chapter_id hoặc quiz_id linh hoạt
         chapter_id = None
-        # Thử tìm chính xác trong map
-        topic_to_id = {
-            "Tổng hợp 1": 201, "Tổng hợp 2": 203, "Tổng hợp 3": 204,
-            "Tổng hợp TTHCM 1": 202, "Tổng hợp TTHCM 2": 205, "Tổng hợp TTHCM 3": 206, "Tổng hợp TTHCM 4": 207
-        }
-        chapter_id = topic_to_id.get(topic)
-
-        if not chapter_id:
-            # Thử tìm trong DB theo tên
+        quiz_id = None
+        
+        # Thử tìm trong Quiz trước
+        quiz_obj = db.query(QuizModel).filter(QuizModel.tenDeThi == topic).first()
+        if quiz_obj:
+            quiz_id = quiz_obj.maDeThi
+        else:
+            # Thử tìm trong Chapter
             ch_obj = db.query(ChapterModel).filter(ChapterModel.tenChuong == topic).first()
             if ch_obj:
                 chapter_id = ch_obj.maChuong
             else:
-                # Thử tìm LIKE
-                ch_obj = db.query(ChapterModel).filter(ChapterModel.tenChuong.like(f"%{topic}%")).first()
-                if ch_obj:
-                    chapter_id = ch_obj.maChuong
-
-        # Fallback cuối cùng: lấy từ câu hỏi đầu tiên
-        if not chapter_id:
-            first_q_key = list(answers.keys())[0] if answers else None
-            chapter_id = answers[first_q_key]["chapter_id"] if first_q_key else 1
+                # Fallback từ câu hỏi đầu tiên
+                first_q_key = list(answers.keys())[0] if answers else None
+                if first_q_key:
+                    q_id = int(first_q_key.replace("q", ""))
+                    db_q = db.query(Question).filter(Question.maCauHoi == q_id).first()
+                    if db_q:
+                        chapter_id = db_q.maChuong
+                        quiz_id = db_q.maDeThi
         
         time_taken_seconds = float(form_data.get("time_taken", 0))
         end_time = datetime.utcnow()
@@ -267,6 +317,7 @@ async def process_result(
         new_exam = Exam(
             maSV=user_id,
             maChuong=chapter_id,
+            maDeThi=quiz_id,
             thoiGianBatDau=start_time,
             thoiGianKetThuc=end_time,
             diem=score_rate
@@ -426,37 +477,8 @@ async def competency_map_page(
         return RedirectResponse(url="/")
         
     fullname = get_fullname(db, user_id)
-    
-    # Kiểm tra xem có biểu đồ cá nhân hóa không, nếu không dùng chung
-    ai_chart_file = f"ai_clusters_{user_id}.png"
-    static_img_dir = os.path.join("static", "img")
-    if not os.path.exists(os.path.join(static_img_dir, ai_chart_file)):
-        ai_chart_file = "ai_clusters.png"
-
-    # Đọc chỉ số AI từ file
-    ai_metrics = {
-        "accuracy": 0, 
-        "precision": 0, 
-        "clusters": 0, 
-        "status": "Chưa có dữ liệu",
-        "last_train": "Chưa xác định",
-        "class_name": "text-danger",
-        "chart_file": ai_chart_file
-    }
-    try:
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-        file_path = os.path.join(base_dir, 'models', 'ai_metrics.json')
-        
-        if os.path.exists(file_path):
-            with open(file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                ai_metrics.update(data)
-                if ai_metrics.get("accuracy", 0) > 70:
-                    ai_metrics["class_name"] = "text-success"
-                else:
-                    ai_metrics["class_name"] = "text-danger"
-    except Exception as e:
-        print(f"Lỗi đọc file AI metrics: {e}")
+    from src.main.repositories.user_repository import get_ai_metrics
+    ai_metrics = get_ai_metrics(user_id)
 
     return templates.TemplateResponse(
         "competency_map.html", 
@@ -468,7 +490,33 @@ async def competency_map_page(
         }
     )
 
-# --- ADMIN VIEWS ---
+@router.get("/my-classes", response_class=HTMLResponse)
+async def my_classes_page(
+    request: Request,
+    user_id: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    if not user_id:
+        return RedirectResponse(url="/")
+        
+    fullname = get_fullname(db, user_id)
+    user_repo = UserRepository(db)
+    user = user_repo.find_by_id(user_id)
+    
+    # Lấy danh sách các lớp sinh viên đã tham gia
+    joined_classes = user.classes_joined
+
+    return templates.TemplateResponse(
+        "my_classes.html", 
+        {
+            "request": request, 
+            "user_fullname": fullname,
+            "joined_classes": joined_classes,
+            "is_admin": check_admin(db, user_id)
+        }
+    )
+
+# --- ADMIN VIEWS MOVED TO admin_routes.py ---
 
 def check_admin(db: Session, user_id: str):
     if not user_id:
@@ -476,99 +524,3 @@ def check_admin(db: Session, user_id: str):
     user_repo = UserRepository(db)
     user = user_repo.find_by_id(user_id)
     return user and user.role == "admin"
-
-@router.get("/admin/users", response_class=HTMLResponse)
-async def admin_users_page(request: Request, user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
-    if not check_admin(db, user_id):
-        return RedirectResponse(url="/home")
-    
-    fullname = get_fullname(db, user_id)
-    user_repo = UserRepository(db)
-    all_users = user_repo.get_all_users()
-
-    # Lấy danh sách chương để Admin chọn khi thêm câu hỏi
-    all_chapters = db.query(Chapter).all()
-    all_courses = db.query(Course).all()
-
-    # Kiểm tra biểu đồ AI
-    ai_chart_file = f"ai_clusters_{user_id}.png"
-    static_img_dir = os.path.join("static", "img")
-    if not os.path.exists(os.path.join(static_img_dir, ai_chart_file)):
-        ai_chart_file = "ai_clusters.png"
-
-    # Đọc chỉ số AI thật từ file
-    ai_metrics = {
-        "accuracy": 0, 
-        "precision": 0, 
-        "clusters": 0, 
-        "status": "Chưa có dữ liệu",
-        "last_train": "Chưa xác định",
-        "class_name": "text-danger",
-        "chart_file": ai_chart_file
-    }
-    try:
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-        file_path = os.path.join(base_dir, 'models', 'ai_metrics.json')
-        
-        if os.path.exists(file_path):
-            with open(file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                ai_metrics.update(data)
-                if ai_metrics.get("accuracy", 0) > 70:
-                    ai_metrics["class_name"] = "text-success"
-                else:
-                    ai_metrics["class_name"] = "text-danger"
-    except Exception as e:
-        print(f"Lỗi đọc file AI metrics: {e}")
-    
-    return templates.TemplateResponse(
-        "admin_users.html", 
-        {
-            "request": request, 
-            "users": all_users, 
-            "user_fullname": fullname,
-            "ai_metrics": ai_metrics,
-            "all_chapters": all_chapters,
-            "all_courses": all_courses
-        }
-    )
-
-@router.get("/admin/content", response_class=HTMLResponse)
-async def admin_content_page(request: Request, user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
-    if not check_admin(db, user_id):
-        return RedirectResponse(url="/home")
-    
-    fullname = get_fullname(db, user_id)
-    all_chapters = db.query(Chapter).all()
-    all_courses = db.query(Course).all()
-
-    return templates.TemplateResponse(
-        "admin_content.html", 
-        {
-            "request": request, 
-            "user_fullname": fullname,
-            "all_chapters": all_chapters,
-            "all_courses": all_courses
-        }
-    )
-
-@router.get("/admin/users/edit/{target_id}", response_class=HTMLResponse)
-async def admin_edit_user_page(target_id: str, request: Request, user_id: Optional[str] = Cookie(None), db: Session = Depends(get_db)):
-    if not check_admin(db, user_id):
-        return RedirectResponse(url="/home")
-    
-    fullname = get_fullname(db, user_id)
-    user_repo = UserRepository(db)
-    target_user = user_repo.find_by_id(target_id)
-    
-    if not target_user:
-        return RedirectResponse(url="/admin/users")
-        
-    return templates.TemplateResponse(
-        "edit_user.html", 
-        {
-            "request": request, 
-            "target_user": target_user, 
-            "user_fullname": fullname
-        }
-    )
