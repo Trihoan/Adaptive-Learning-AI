@@ -169,20 +169,35 @@ class QuizService:
                         Chapter.stt < 100
                     ).all()
                     chapter_ids = [c.maChuong for c in course_chapters]
+                    # Ưu tiên lấy câu hỏi theo trình độ trước
                     db_questions = self.db.query(Question).filter(
                         Question.maChuong.in_(chapter_ids),
                         Question.doKho == user_level
                     ).all()
-                    if len(db_questions) < 20:
-                        db_questions = self.db.query(Question).filter(Question.maChuong.in_(chapter_ids)).all()
+                    # Nếu không đủ 60 câu thì lấy thêm các câu khác để bù vào cho đủ
+                    if len(db_questions) < 60:
+                        extra_questions = self.db.query(Question).filter(
+                            Question.maChuong.in_(chapter_ids),
+                            Question.doKho != user_level
+                        ).all()
+                        db_questions.extend(extra_questions)
                     limit = 60
                 else:
+                    # Ưu tiên lấy câu hỏi theo trình độ của sinh viên (Adaptive)
                     db_questions = self.db.query(Question).filter(
                         Question.maChuong == chapter.maChuong,
                         Question.doKho == user_level
                     ).all()
-                    if len(db_questions) < 5:
-                        db_questions = self.db.query(Question).filter(Question.maChuong == chapter.maChuong).all()
+                    
+                    # Nếu số lượng câu hỏi theo trình độ hiện tại ít hơn 40, 
+                    # ta lấy thêm các câu hỏi ở độ khó khác để sinh viên có đủ 40 câu ôn tập
+                    if len(db_questions) < 40:
+                        extra_questions = self.db.query(Question).filter(
+                            Question.maChuong == chapter.maChuong,
+                            Question.doKho != user_level
+                        ).all()
+                        db_questions.extend(extra_questions)
+                    
                     limit = 40
                 print(f"✅ Found chapter: {chapter.maChuong} - {chapter.tenChuong}")
 

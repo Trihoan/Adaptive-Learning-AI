@@ -219,7 +219,7 @@
                 let stat = dbStats[ex.topic] || { count: 0, time: "0 phút" };
                 let draft = getDraft(ex.topic);
                 let displayTitle = ex.is_general ? ex.title : `Bài luyện tập: ${ex.title}`;
-                let qCount = ex.is_general ? 60 : 40;
+                let qCount = ex.question_count || (ex.is_general ? 60 : 40);
                 let assignedBadge = ex.is_assigned ? `<span class="assigned-badge"><i class="fa-solid fa-thumbtack"></i> Giảng viên giao</span>` : "";
 
                 let action = "";

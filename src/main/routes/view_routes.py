@@ -95,16 +95,25 @@ async def home_page(request: Request, user_id: Optional[str] = Cookie(None), db:
         
         dynamic_courses[c.maMonHoc] = []
         for ch in db_chapters:
+            # Đếm số câu hỏi thực tế của chương này
+            from src.main.domain.models import Question as QuestionModel
+            q_count = db.query(QuestionModel).filter(QuestionModel.maChuong == ch.maChuong).count()
+            
             dynamic_courses[c.maMonHoc].append({
                 "id": ch.maChuong,
                 "type": "chapter",
                 "title": ch.tenChuong,
                 "topic": ch.tenChuong,
                 "is_general": ch.stt >= 100,
-                "is_assigned": ch.maChuong in assigned_quiz_ids
+                "is_assigned": ch.maChuong in assigned_quiz_ids,
+                "question_count": q_count
             })
             
         for qz in db_quizzes:
+            # Đếm số câu hỏi thực tế của đề thi này
+            from src.main.domain.models import Question as QuestionModel
+            q_count = db.query(QuestionModel).filter(QuestionModel.maDeThi == qz.maDeThi).count()
+
             dynamic_courses[c.maMonHoc].append({
                 "id": qz.maDeThi,
                 "type": "quiz",
@@ -112,7 +121,8 @@ async def home_page(request: Request, user_id: Optional[str] = Cookie(None), db:
                 "topic": qz.tenDeThi,
                 "is_general": True,
                 "is_assigned": True,
-                "time_limit": qz.thoiGianLam
+                "time_limit": qz.thoiGianLam,
+                "question_count": q_count
             })
 
     # Lấy thống kê thực tế từ DB

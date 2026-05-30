@@ -5,19 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz - {{ display_topic }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='css/quiz.css') }}">
-    <script src="https://kit.fontawesome.com/ca2ad9c616.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/quiz.css') }}?v=1.3">
+    <script src="https://kit.fontawesome.com/ca2ad9c616.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
 
-    <script id="questions-data" type="application/json">
-        {{ questions | tojson | safe }}
-    </script>
-
+    <!-- HEADER -->
     <div class="header">
         <div class="logo">
-            <a href="{{ url_for('home_page') }}">Adaptive Learning AI</a>
+             <a href="{{ url_for('home_page') }}">Adaptive Learning AI</a>
         </div>
         <div class="user">
             {{ user_fullname }}
@@ -25,14 +22,28 @@
             <div id="user-menu" class="user-menu">
                 <div class="menu-item" onclick="goProfile()">Thông tin cá nhân</div>
                 {% if not is_admin %}
+                <div class="menu-item menu-item-special" onclick="location.href='/my-classes'">
+                    Lớp học của tôi
+                </div>
                 <div class="menu-item menu-item-special" onclick="location.href='/competency-map'">
                     Bản đồ năng lực
                 </div>
+                {% endif %}
+                {% if is_admin %}
+                <div class="menu-item menu-item-admin" onclick="location.href='/admin/users'">Quản lý</div>
                 {% endif %}
                 <div class="menu-item logout" onclick="logout()">Đăng xuất</div>
             </div>
         </div>
     </div>
+
+    <script id="questions-data" type="application/json">
+        {{ questions | tojson | safe }}
+    </script>
+
+    <script id="topic-data" type="application/json">
+        {{ topic | tojson | safe }}
+    </script>
 
     <div class="quiz-container">
         <form id="quizForm" method="POST" action="/result">            
@@ -109,7 +120,8 @@
         // 1. ĐỌC DỮ LIỆU
         const questionsData = document.getElementById('questions-data').textContent;
         const questions = JSON.parse(questionsData || '[]');
-        const currentTopic = {{ topic | tojson | safe }};
+        const topicData = document.getElementById('topic-data').textContent;
+        const currentTopic = JSON.parse(topicData || '"default"');
         const draftKey = "alas_quiz_draft_" + currentTopic;
         let currentQuestion = 1;
         let isSubmitting = false;
